@@ -1,10 +1,13 @@
 import 'package:bookkeeping/common/action_entry.dart';
 import 'package:bookkeeping/common/checked_entry.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
+import 'package:bookkeeping/common/runtime.dart';
 import 'package:bookkeeping/item/category_item.dart';
 import 'package:bookkeeping/item/number_key_board.dart';
 import 'package:bookkeeping/model/category.dart';
+import 'package:bookkeeping/model/category_tab.dart';
 import 'package:bookkeeping/model/record.dart';
+import 'package:bookkeeping/pages/category_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -19,22 +22,22 @@ class DetailPage extends StatefulWidget {
 }
 
 class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMixin {
-  List<CategoryCheckedTab> tabs = [
-    CategoryCheckedTab(name: '支出', direction: 0, list: [
-      CheckedEntry(entry: Category(name: '吃喝', direction: 0), checked: false),
-      CheckedEntry(entry: Category(name: '生活', direction: 0), checked: false),
-      CheckedEntry(entry: Category(name: '零食', direction: 0), checked: false),
-      CheckedEntry(entry: Category(name: '交通', direction: 0), checked: false),
-      CheckedEntry(entry: Category(name: '孩子', direction: 0), checked: false),
-      CheckedEntry(entry: Category(name: '宠物', direction: 0), checked: false),
-    ]),
-    CategoryCheckedTab(name: '收入', direction: 1, list: [
-      CheckedEntry(entry: Category(name: '工资', direction: 1), checked: false),
-      CheckedEntry(entry: Category(name: '奖金', direction: 1), checked: false),
-    ]),
-  ];
+  List<CategoryCheckedTab> tabs = [];
 
   TabController _tabController;
+
+  DetailPageState() {
+    _copyCategoryTab();
+  }
+
+  void _copyCategoryTab() {
+    tabs = List<CategoryCheckedTab>();
+    for (CategoryTab categoryTab in Runtime.categoryTabList) {
+      List<CheckedEntry<Category>> list =
+          categoryTab.list.map((category) => CheckedEntry(entry: category, checked: false)).toList();
+      tabs.add(CategoryCheckedTab(name: categoryTab.name, direction: categoryTab.direction, list: list));
+    }
+  }
 
   @override
   void initState() {
@@ -47,6 +50,9 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
           _checkCategory(tabs[i].list, widget.record.category);
         }
       }
+    } else {
+      // 新建情况下默认选中第一个分类
+      tabs[0].list[0].checked = true;
     }
   }
 
@@ -69,32 +75,35 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
           }).toList(),
         ),
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.delete), onPressed: (){
-            showDialog(
-              context: context,
-              builder: (context){
-                return AlertDialog(
-                  title: Text('提示'),
-                  content: Text('确认删除该记录吗？'),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text('取消'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    FlatButton(
-                      child: Text('确定'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.pop(context, ActionEntry(oldEntry: widget.record, newEntry: null, deleted: true));
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          },),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('提示'),
+                    content: Text('确认删除该记录吗？'),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('取消'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('确定'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pop(context, ActionEntry(oldEntry: widget.record, newEntry: null, deleted: true));
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ],
       ),
       body: Container(
@@ -151,7 +160,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
   Widget _getCategoryView(CategoryCheckedTab categoryTab) {
     return GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5),
-        itemCount: categoryTab.list.length,
+        itemCount: categoryTab.list.length + 1,
         itemBuilder: (context, index) {
           return Container(
             decoration: BoxDecoration(
@@ -159,14 +168,30 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
               color: Colors.white,
             ),
             margin: EdgeInsets.all(5),
-            child: CategoryItem(categoryTab.list[index], _onSelected),
+            child: index < categoryTab.list.length
+                ? CategoryItem(categoryTab.list[index], _onSelected)
+                : IconButton(
+                    icon: Icon(
+                      Icons.settings,
+                      size: 40,
+                    ),
+                    onPressed: _onSettingPressed,
+                    color: Colors.blueAccent,
+                  ),
           );
         });
   }
 
+  void _onSettingPressed() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => CategoryPage())).then((_) {
+      _copyCategoryTab();
+      setState(() {});
+    });
+  }
+
   void _onSelected(CheckedEntry<Category> categoryChecked) {
     tabs.forEach((categoryCheckedTab) {
-      if (categoryCheckedTab.direction != categoryChecked.entry.direction){
+      if (categoryCheckedTab.direction != categoryChecked.entry.direction) {
         _checkCategory(categoryCheckedTab.list, null);
       } else {
         _checkCategory(categoryCheckedTab.list, categoryChecked.entry.name);
@@ -176,8 +201,8 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
   }
 
   void _checkCategory(List<CheckedEntry<Category>> categoryCheckedList, String category) {
-    categoryCheckedList.forEach((each){
-      if(each.entry.name == category) {
+    categoryCheckedList.forEach((each) {
+      if (each.entry.name == category) {
         each.checked = true;
       } else {
         each.checked = false;

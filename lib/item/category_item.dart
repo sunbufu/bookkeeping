@@ -35,7 +35,10 @@ class CategoryItem extends StatelessWidget {
                 backgroundColor: _checked ? _enableColor : _disableColor,
                 foregroundColor: Colors.white,
               ),
-              Text(_category.entry.name, style: TextStyle(color: _checked ? _enableColor : _disableColor)),
+              Text(_category.entry.name,
+                style: TextStyle(fontSize: 12, color: _checked ? _enableColor : _disableColor),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
             ],
           )),
     );

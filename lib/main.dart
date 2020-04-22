@@ -1,6 +1,4 @@
-import 'package:bookkeeping/pages/detail_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 
 import 'pages/home_page.dart';
 
@@ -24,9 +22,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-//      home: MyHomePage2(),//MyHomePage(title: 'Flutter Demo Home Page'),
-      home: ProgressHUD(child: HomePage()),
-//      home: ProgressHUD(child: DetailPage()),
+      home: HomePage(),
     );
   }
 }
