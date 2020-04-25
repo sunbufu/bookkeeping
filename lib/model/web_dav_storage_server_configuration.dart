@@ -1,18 +1,18 @@
-import 'package:bookkeeping/model/storage_server.dart';
+import 'package:bookkeeping/model/storage_server_configuration.dart';
 
 /// web dav 存储配置
-class WebDavStorageServer implements StorageServer {
+class WebDavStorageServerConfiguration implements StorageServerConfiguration {
   String url;
   String username;
   String password;
 
-  WebDavStorageServer({
+  WebDavStorageServerConfiguration({
     this.url,
     this.username,
     this.password,
   });
 
-  factory WebDavStorageServer.fromJson(Map<String, dynamic> json) => WebDavStorageServer(
+  factory WebDavStorageServerConfiguration.fromJson(Map<String, dynamic> json) => WebDavStorageServerConfiguration(
         url: json["url"],
         username: json["username"],
         password: json["password"],

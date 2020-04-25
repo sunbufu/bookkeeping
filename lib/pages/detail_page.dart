@@ -15,7 +15,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 class DetailPage extends StatefulWidget {
   final Record record;
 
-  DetailPage(Record record) : this.record = record;
+  DetailPage({Record record}) : this.record = record;
 
   @override
   State<StatefulWidget> createState() => DetailPageState();
@@ -30,9 +30,12 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
     _copyCategoryTab();
   }
 
-  void _copyCategoryTab() {
+  void _copyCategoryTab() async {
     tabs = List<CategoryCheckedTab>();
-    for (CategoryTab categoryTab in Runtime.categoryTabList) {
+    if (null == Runtime.categoryService.categoryTabList) {
+      await Runtime.categoryService.fetchCategoryFromStorage(Runtime.fileStorageAdapter);
+    }
+    for (CategoryTab categoryTab in Runtime.categoryService.categoryTabList) {
       List<CheckedEntry<Category>> list =
           categoryTab.list.map((category) => CheckedEntry(entry: category, checked: false)).toList();
       tabs.add(CategoryCheckedTab(name: categoryTab.name, direction: categoryTab.direction, list: list));
@@ -171,22 +174,21 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
             child: index < categoryTab.list.length
                 ? CategoryItem(categoryTab.list[index], _onSelected)
                 : IconButton(
-                    icon: Icon(
-                      Icons.settings,
-                      size: 40,
-                    ),
-                    onPressed: _onSettingPressed,
+                    icon: Icon(Icons.settings, size: 40),
+                    onPressed: () => _onSettingPressed(_tabController.index),
                     color: Colors.blueAccent,
                   ),
           );
         });
   }
 
-  void _onSettingPressed() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => CategoryPage())).then((_) {
-      _copyCategoryTab();
-      setState(() {});
-    });
+  void _onSettingPressed(int tabIndex) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => CategoryPage(defaultTabIndex: tabIndex)))
+        .then((_) {
+          _copyCategoryTab();
+          setState(() {});
+        });
   }
 
   void _onSelected(CheckedEntry<Category> categoryChecked) {

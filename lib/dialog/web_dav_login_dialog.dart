@@ -1,5 +1,5 @@
 import 'package:bookkeeping/model/user.dart';
-import 'package:bookkeeping/model/web_dav_storage_server.dart';
+import 'package:bookkeeping/model/web_dav_storage_server_configuration.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,7 +29,7 @@ class WebDavLoginDialog extends SimpleDialog {
     return User(
         username: nickname,
         storageServerType: 1,
-        storageServer: WebDavStorageServer(url: url, username: username, password: password));
+        storageServer: WebDavStorageServerConfiguration(url: url, username: username, password: password));
   }
 
   void show(BuildContext context, User user, Function(User) callback) {
@@ -39,9 +39,9 @@ class WebDavLoginDialog extends SimpleDialog {
     TextEditingController _password = TextEditingController();
     if (null != user) {
       _nickname.text = user.username;
-      _url.text = (user.storageServer as WebDavStorageServer).url;
-      _username.text = (user.storageServer as WebDavStorageServer).username;
-      _password.text = (user.storageServer as WebDavStorageServer).password;
+      _url.text = (user.storageServer as WebDavStorageServerConfiguration).url;
+      _username.text = (user.storageServer as WebDavStorageServerConfiguration).username;
+      _password.text = (user.storageServer as WebDavStorageServerConfiguration).password;
     }
     showDialog(
         barrierDismissible: false,

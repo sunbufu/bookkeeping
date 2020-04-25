@@ -42,6 +42,7 @@ class DailyRecordListState extends State<DailyRecordList> {
   }
 
   void setMonthRecord(MonthlyRecord monthlyRecord) {
+    if (null == monthlyRecord) return;
     this._monthlyRecord = monthlyRecord;
     List<DailyRecord> list = List.from(_monthlyRecord.records.values);
     list.sort((a, b) => a.time - b.time);

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:bookkeeping/model/web_dav_storage_server.dart';
+import 'package:bookkeeping/model/web_dav_storage_server_configuration.dart';
 import 'package:bookkeeping/storage/file_storage_adapter.dart';
 import 'package:bookkeeping/storage/storage_adapter.dart';
 import 'package:webdav/webdav.dart';
@@ -16,12 +16,12 @@ class WebDavStorageAdapter implements StorageAdapter {
   Client _client;
 
   /// webdav 配置
-  WebDavStorageServer webDavStorageServer;
+  WebDavStorageServerConfiguration webDavStorageServer;
 
   /// 本地文件存储适配器
   FileStorageAdapter _fileStorageAdapter;
 
-  WebDavStorageAdapter(WebDavStorageServer webDavStorageServer) {
+  WebDavStorageAdapter(WebDavStorageServerConfiguration webDavStorageServer) {
     this.webDavStorageServer = webDavStorageServer;
     _init();
   }

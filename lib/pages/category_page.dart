@@ -1,7 +1,5 @@
-import 'dart:convert';
-
-import 'package:bookkeeping/common/constants.dart';
 import 'package:bookkeeping/common/runtime.dart';
+import 'package:bookkeeping/dialog/loading_dialog.dart';
 import 'package:bookkeeping/model/category.dart';
 import 'package:bookkeeping/model/category_tab.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class CategoryPage extends StatefulWidget {
+  final int defaultTabIndex;
+
+  CategoryPage({int defaultTabIndex}) : this.defaultTabIndex = defaultTabIndex ?? 0;
+
   @override
   State<StatefulWidget> createState() {
     return CategoryPageState();
@@ -25,7 +27,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
 
   CategoryPageState() {
     // 拷贝用户修改
-    for (CategoryTab categoryTab in Runtime.categoryTabList) {
+    for (CategoryTab categoryTab in Runtime.categoryService.categoryTabList) {
       List<Category> list = [];
       for (Category each in categoryTab.list) {
         list.add(Category(name: each.name, icon: each.icon, direction: each.direction));
@@ -38,38 +40,13 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   void initState() {
     super.initState();
     _tabController = TabController(length: _categoryTabList.length, vsync: this);
+    _tabController.index = widget.defaultTabIndex;
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        if (!changed) return true;
-        bool result = false;
-        await showDialog(
-            context: context,
-            child: AlertDialog(
-              title: Text('是否保存更改?'),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text('丢弃'),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    result = true;
-                  },
-                ),
-                FlatButton(
-                  child: Text('保存'),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _saveChange();
-                    result = true;
-                  },
-                )
-              ],
-            ));
-        return result;
-      },
+      onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: Color(0xEEEEEEEE),
         appBar: AppBar(
@@ -80,31 +57,21 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
             tabs: _categoryTabList.map((tab) => Tab(child: Text(tab.name, style: TextStyle(fontSize: 18)))).toList(),
           ),
           actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () => _showAddCategory(),
-            ),
-            IconButton(
-              icon: Icon(Icons.save),
-              onPressed: () => _saveChange(),
-            ),
+            IconButton(icon: Icon(Icons.add), onPressed: () => _showAddCategory()),
+            IconButton(icon: Icon(Icons.save), onPressed: () => _saveChange()),
           ],
         ),
-        body: Container(
-          child: TabBarView(
-            controller: _tabController,
-            children: _categoryTabList.map((categoryTab) {
-              return Container(
-                alignment: Alignment.center,
-                child: _getCategoryItemList(categoryTab),
-              );
-            }).toList(),
-          ),
-        ),
+        body: Container(child: TabBarView(
+          controller: _tabController,
+          children: _categoryTabList.map((categoryTab) {
+            return Container(alignment: Alignment.center, child: _getCategoryItemList(categoryTab));
+          }).toList(),
+        )),
       ),
     );
   }
 
+  /// 分类列表
   Widget _getCategoryItemList(CategoryTab categoryTab) {
     return ReorderableListView(
       children: categoryTab.list.map((category) {
@@ -133,54 +100,58 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
                     ]),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () => _showUpdateCategory(category),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  color: Colors.red,
-                  onPressed: () => _showDeletedCategory(category),
-                ),
-                IconButton(
-                  icon: Icon(Icons.reorder),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+                IconButton(icon: Icon(Icons.edit), onPressed: () => _showUpdateCategory(category)),
+                IconButton(icon: Icon(Icons.delete), color: Colors.red, onPressed: () => _showDeletedCategory(category)),
+                IconButton(icon: Icon(Icons.drag_handle), onPressed: () {}),
+              ]),
           ),
         );
 //        return ListTile(key: ObjectKey(checkedEntry), title: Text(checkedEntry.entry.name),);
       }).toList(),
-      onReorder: (oldIndex, newIndex) {
-        _onReorder(categoryTab, oldIndex, newIndex);
-      },
+      onReorder: (oldIndex, newIndex) => _onReorder(categoryTab, oldIndex, newIndex),
     );
   }
 
+  /// 返回之前
+  Future<bool> _onWillPop() async {
+    if (!changed) return true;
+    bool result = false;
+    await showDialog(context: context,
+        child: AlertDialog(title: Text('是否保存更改?'), actions: <Widget>[
+          FlatButton(child: Text('丢弃'), onPressed: () {
+            Navigator.pop(context);
+            result = true;
+          }),
+          FlatButton(child: Text('保存'), onPressed: () {
+            Navigator.pop(context);
+            _saveChange();
+            result = true;
+          })
+        ]));
+    return result;
+  }
+
+  /// 删除确认框
   void _showDeletedCategory(Category category) {
     showDialog(
         context: context,
         child: AlertDialog(
           title: Text('确定删除分类 ${category.name} ?'),
           actions: <Widget>[
-            FlatButton(
-              child: Text('取消'),
-              onPressed: () => Navigator.pop(context),
-            ),
+            FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
             FlatButton(
               child: Text('确定'),
               onPressed: () {
-                _categoryTabList[_tabController.index].list.remove(category);
+                _deleteCategory(category);
                 setState(() {});
                 Navigator.pop(context);
-                changed = true;
               },
             ),
           ],
         ));
   }
 
+  /// 分类修改框
   void _showUpdateCategory(Category category) {
     TextEditingController _categoryNameController = TextEditingController(text: category.name);
     showDialog(
@@ -193,32 +164,20 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
             controller: _categoryNameController,
           ),
           actions: <Widget>[
-            FlatButton(
-              child: Text('取消'),
-              onPressed: () => Navigator.pop(context),
-            ),
+            FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
             FlatButton(
               child: Text('修改'),
               onPressed: () {
-                changed = true;
-                String name = _categoryNameController.text;
-                for (Category each in _categoryTabList[_tabController.index].list) {
-                  if (each.name == name) {
-                    Fluttertoast.showToast(msg: '$name 分类已经存在');
-                    return;
-                  }
-                }
-                category.name = name;
+                _updateCategory(category, _categoryNameController.text);
                 setState(() {});
                 Navigator.pop(context);
-                changed = true;
               },
             ),
           ],
         ));
   }
 
-  /// 展示添加分类框
+  /// 添加分类框
   void _showAddCategory() {
     TextEditingController _categoryNameController = TextEditingController();
     showDialog(
@@ -231,33 +190,56 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
             controller: _categoryNameController,
           ),
           actions: <Widget>[
-            FlatButton(
-              child: Text('取消'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            FlatButton(
-              child: Text('新增'),
+            FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
+            FlatButton(child: Text('新增'),
               onPressed: () {
-                changed = true;
-                String name = _categoryNameController.text;
-                for (Category each in _categoryTabList[_tabController.index].list) {
-                  if (each.name == name) {
-                    Fluttertoast.showToast(msg: '$name 分类已经存在');
-                    return;
-                  }
-                }
-                _categoryTabList[_tabController.index]
-                    .list
-                    .add(Category(name: name, direction: _categoryTabList[_tabController.index].direction));
+                _addCategory(_categoryNameController.text);
                 setState(() {});
                 Navigator.pop(context);
-                changed = true;
               },
             ),
           ],
         ));
   }
 
+  /// 修改分类
+  void _updateCategory(Category category, String name) {
+    if (_contains(_categoryTabList[_tabController.index].list, name)) {
+      Fluttertoast.showToast(msg: '$name 分类已经存在');
+      return;
+    }
+    category.name = name;
+    changed = true;
+  }
+
+  /// 删除分类
+  void _deleteCategory(Category category) {
+    _categoryTabList[_tabController.index].list.remove(category);
+    changed = true;
+  }
+
+  /// 添加分类
+  void _addCategory(String name) {
+    if (_contains(_categoryTabList[_tabController.index].list, name)) {
+      Fluttertoast.showToast(msg: '$name 分类已经存在');
+      return;
+    }
+    _categoryTabList[_tabController.index]
+        .list
+        .add(Category(name: name, direction: _categoryTabList[_tabController.index].direction));
+    changed = true;
+    setState(() {});
+  }
+
+  /// 是否包含指定名字到分类
+  bool _contains(List<Category> list, String name) {
+    for (Category each in list) {
+      if (each.name == name) return false;
+    }
+    return true;
+  }
+
+  /// 顺序变更
   void _onReorder(CategoryTab categoryTab, int oldIndex, int newIndex) {
     changed = true;
     setState(() {
@@ -266,13 +248,10 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
     });
   }
 
+  /// 保存
   Future<void> _saveChange() async {
     changed = false;
-    Runtime.categoryTabList = _categoryTabList;
-    String content = json.encode(Runtime.categoryTabList);
-//    LoadingDialog.runWithLoadingAsync(context, '保存中', () async {
-    await Runtime.fileStorageAdapter.write(Constants.CATEGORY_FILE_NAME, content);
-    await Runtime.storageAdapter.write(Constants.CATEGORY_FILE_NAME, content);
-//    });
+    LoadingDialog.runWithLoading(context, '保存中', () => Runtime.categoryService.categoryTabList = _categoryTabList);
+    Fluttertoast.showToast(msg: '保存成功');
   }
 }

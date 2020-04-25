@@ -1,5 +1,5 @@
-import 'package:bookkeeping/model/storage_server.dart';
-import 'package:bookkeeping/model/web_dav_storage_server.dart';
+import 'package:bookkeeping/model/storage_server_configuration.dart';
+import 'package:bookkeeping/model/web_dav_storage_server_configuration.dart';
 
 class User {
   // 用户名
@@ -9,7 +9,7 @@ class User {
   int storageServerType;
 
   // 存储服务
-  StorageServer storageServer;
+  StorageServerConfiguration storageServer;
 
   User({
     this.username,
@@ -20,11 +20,11 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) => User(
       username: json["username"],
       storageServerType: json["storageServerType"],
-      storageServer: WebDavStorageServer.fromJson(json["storageServer"]));
+      storageServer: WebDavStorageServerConfiguration.fromJson(json["storageServer"]));
 
   Map<String, dynamic> toJson() => {
         "username": username,
         "storageServerType": storageServerType,
-        "storageServer": (storageServer as WebDavStorageServer).toJson()
+        "storageServer": (storageServer as WebDavStorageServerConfiguration).toJson()
       };
 }
