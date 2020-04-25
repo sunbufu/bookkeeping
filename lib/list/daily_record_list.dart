@@ -45,7 +45,7 @@ class DailyRecordListState extends State<DailyRecordList> {
     if (null == monthlyRecord) return;
     this._monthlyRecord = monthlyRecord;
     List<DailyRecord> list = List.from(_monthlyRecord.records.values);
-    list.sort((a, b) => a.time - b.time);
+    list.sort((a, b) => b.time - a.time);
     Set<DailyRecord> deletedDailyRecords = {};
     list.forEach((dr) {
       if (null == dr || 0 >= dr.records.length) deletedDailyRecords.add(dr);
