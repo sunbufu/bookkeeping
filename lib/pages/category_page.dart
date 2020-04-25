@@ -251,7 +251,9 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   /// 保存
   Future<void> _saveChange() async {
     changed = false;
-    LoadingDialog.runWithLoading(context, '保存中', () => Runtime.categoryService.categoryTabList = _categoryTabList);
+//    LoadingDialog.runWithLoading(context, '保存中', () {
+      Runtime.categoryService.categoryTabList = _categoryTabList;
+//    });
     Fluttertoast.showToast(msg: '保存成功');
   }
 }
