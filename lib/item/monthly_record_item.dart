@@ -1,4 +1,5 @@
 import 'package:bookkeeping/common/date_time_util.dart';
+import 'package:bookkeeping/item/weekly_bar_chart_item.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,6 +88,9 @@ class MonthlyRecordItem extends StatelessWidget {
           Expanded(child: _getExpenses(),),
         ],),
         Container(height: 10),
+        DateTimeUtil.isCurrentMonth(_monthlyRecord.time)
+            ? WeeklyBarChartItem(monthlyRecord: _monthlyRecord)
+            : Container(),
       ]),
     );
   }

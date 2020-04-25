@@ -1,0 +1,4 @@
+storePassword=密匙库口令
+keyPassword=key密匙口令
+keyAlias=key别名
+storeFile=路径

@@ -17,30 +17,30 @@ class FileStorageAdapter implements StorageAdapter {
 
   @override
   Future<bool> exist(String fileName) async {
-    return File(await getFullPath(fileName)).exists();
+    return await File(await getFullPath(fileName)).exists();
   }
 
   @override
   Future<List<String>> list() async {
-    return (await _directory).list().map((f) => _getFileNameFromPath(f.path)).toList();
+    return (await (await _directory).list()).map((f) => _getFileNameFromPath(f.path)).toList();
   }
 
   @override
   Future<String> read(String fileName) async {
     if (!await exist(fileName)) return '';
-    return File(await getFullPath(fileName)).readAsString();
+    return await File(await getFullPath(fileName)).readAsString();
   }
 
   @override
   Future<bool> write(String fileName, String content) async {
-    File(await getFullPath(fileName)).writeAsString(content, flush: true);
+    await File(await getFullPath(fileName)).writeAsString(content, flush: true);
     return true;
   }
 
   @override
   Future<bool> delete(String fileName) async {
     if (!await exist(fileName)) return false;
-    File(await getFullPath(fileName)).delete();
+    await File(await getFullPath(fileName)).delete();
     return true;
   }
 

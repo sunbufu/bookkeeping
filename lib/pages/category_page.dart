@@ -234,9 +234,9 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   /// 是否包含指定名字到分类
   bool _contains(List<Category> list, String name) {
     for (Category each in list) {
-      if (each.name == name) return false;
+      if (each.name == name) return true;
     }
-    return true;
+    return false;
   }
 
   /// 顺序变更

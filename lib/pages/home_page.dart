@@ -19,7 +19,6 @@ import 'package:bookkeeping/pages/detail_page.dart';
 import 'package:bookkeeping/storage/storage_adapter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:quick_actions/quick_actions.dart';
 
@@ -66,7 +65,9 @@ class HomePageState extends State<HomePage> {
     // 初始化用户配置
     await _initUserProperties(Runtime.fileStorageAdapter, (user){
       _initWebDavStorageServer(Runtime.user.storageServer as WebDavStorageServerConfiguration);
-      _refreshDataFromStorage(Runtime.storageService);
+      _flushRecordToStorage(Runtime.storageService).then((_) {
+        _refreshDataFromStorage(Runtime.storageService);
+      });
     });
     // 设置列表回调
     _initRecordListCallBack();
@@ -98,14 +99,13 @@ class HomePageState extends State<HomePage> {
 
   /// 初始化 webdav
   void _initWebDavStorageServer(WebDavStorageServerConfiguration configuration) {
-    var dialog = ProgressHUD.of(context);
-    dialog.showWithText('连接中');
-    Runtime.storageService.init(
-        configuration: configuration,
-        success: (_) {},
-        fail: (e) => Fluttertoast.showToast(msg: '连接失败')
-    );
-    dialog.dismiss();
+    LoadingDialog.runWithLoading(context, '连接中...', (){
+      Runtime.storageService.init(
+          configuration: configuration,
+          success: (_) {},
+          fail: (e) => Fluttertoast.showToast(msg: '连接失败')
+      );
+    });
   }
 
   /// 初始化菜单

@@ -69,4 +69,10 @@ class DateTimeUtil {
     Duration duration = Duration(hours: dateTime.hour, minutes: dateTime.minute, seconds: dateTime.second);
     return getTimestampByDateTime(dateTime.subtract(duration));
   }
+
+  /// 是否是当前月份
+  static bool isCurrentMonth(int timestamp) {
+    return getMonthByTimestamp(getTimestamp()) == getMonthByTimestamp(timestamp);
+  }
+
 }
