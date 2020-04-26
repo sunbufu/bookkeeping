@@ -21,6 +21,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -92,6 +93,7 @@ class HomePageState extends State<HomePage> {
     } else {
       WebDavLoginDialog().show(context, null, (user) {
         Runtime.user = user;
+        Runtime.fileStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
         if (null != callback) callback(user);
       });
     }
@@ -123,33 +125,27 @@ class HomePageState extends State<HomePage> {
         Runtime.fileStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
         Fluttertoast.showToast(msg: '清除成功');
       }),
-      MenuItem('使用教程', () {}),
-      MenuItem('关于我们', () {}),
+      MenuItem('使用教程', () {
+        launch('https://sunbufu.github.io');
+      }),
+      MenuItem('关于我们', () {
+        launch('https://sunbufu.github.io/about');
+      }),
     ];
   }
 
   void _initQuickAction() {
     // 配置 quick action
-    QuickActions quickActions = QuickActions();
+    final QuickActions quickActions = QuickActions();
     quickActions.initialize((String shortcutType) {
       if ('add_record' == shortcutType)
         Future.delayed(Duration(milliseconds: 200), () => gotoDetailPageAndCreateRecord());
     });
-
     quickActions.setShortcutItems(<ShortcutItem>[
-      // NOTE: This first action icon will only work on iOS.
-      // In a real world project keep the same file name for both platforms.
       const ShortcutItem(
         type: 'add_record',
         localizedTitle: '添加一笔',
-        icon: 'AppIcon',
-      ),
-      // NOTE: This second action icon will only work on Android.
-      // In a real world project keep the same file name for both platforms.
-      const ShortcutItem(
-        type: 'add_two',
-        localizedTitle: '记录分析',
-        icon: 'ic_launcher',
+        icon: 'ic_add',
       ),
     ]);
   }

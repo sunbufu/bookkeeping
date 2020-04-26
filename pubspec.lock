@@ -359,4 +359,4 @@ packages:
     version: "3.0.3"
 sdks:
   dart: ">=2.6.0 <3.0.0"
-  flutter: ">=1.12.13+hotfix.5 <2.0.0"
+  flutter: ">=1.12.8 <2.0.0"

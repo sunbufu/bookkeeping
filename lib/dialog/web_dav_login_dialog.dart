@@ -64,6 +64,7 @@ class WebDavLoginDialog extends SimpleDialog {
                     ),
                   ),
                 ),
+                Text('例如: https://dav.jianguoyun.com/dav/bookkeeping', style: TextStyle(fontSize: 10),),
                 TextField(controller: _username, decoration: InputDecoration(hintText: "账号")),
                 TextField(controller: _password, decoration: InputDecoration(hintText: "密码"), obscureText: true),
                 Container(padding: EdgeInsets.all(10)),
