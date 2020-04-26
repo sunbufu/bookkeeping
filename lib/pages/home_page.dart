@@ -142,11 +142,7 @@ class HomePageState extends State<HomePage> {
         Future.delayed(Duration(milliseconds: 200), () => gotoDetailPageAndCreateRecord());
     });
     quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(
-        type: 'add_record',
-        localizedTitle: '添加一笔',
-        icon: 'ic_add',
-      ),
+      const ShortcutItem(type: 'add_record', localizedTitle: '添加一笔', icon: 'ic_add'),
     ]);
   }
 

@@ -39,3 +39,4 @@ lib/generated_plugin_registrant.dart
 # 安卓打包密钥
 /android/app/*.keystore
 /android/key.properties
+/android/settings_aar.gradle

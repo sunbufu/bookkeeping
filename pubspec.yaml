@@ -25,7 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   webdav: 1.0.0-dev
   fluttertoast: ^4.0.0
-  path_provider: ^1.6.5
+  path_provider: ^1.6.7
   url_launcher: ^5.4.2
   flutter_progress_hud: ^1.0.2
   date_format: ^1.0.8
