@@ -25,7 +25,7 @@ class MonthlyRecordItem extends StatelessWidget {
         dr.records.forEach((id, r) {
           if (0 == r.direction) {
             balance -= r.amount;
-            expenses = r.amount;
+            expenses += r.amount;
           } else if (1 == r.direction) {
             balance += r.amount;
             receipts += r.amount;
