@@ -47,6 +47,8 @@ class HomePageState extends State<HomePage> {
   /// 是否展示浮动按钮
   bool showFloatingButton = true;
 
+  final QuickActions _quickActions = QuickActions();
+
   @override
   void initState() {
     super.initState();
@@ -136,14 +138,15 @@ class HomePageState extends State<HomePage> {
 
   void _initQuickAction() {
     // 配置 quick action
-    final QuickActions quickActions = QuickActions();
-    quickActions.initialize((String shortcutType) {
+    _quickActions.setShortcutItems(<ShortcutItem>[
+      const ShortcutItem(type: 'add_record', localizedTitle: '添加一笔', icon: 'ic_add'),
+    ]);
+    _quickActions.initialize((String shortcutType) {
+      print('on quick action callback ' + shortcutType);
+      Fluttertoast.showToast(msg: shortcutType);
       if ('add_record' == shortcutType)
         Future.delayed(Duration(milliseconds: 200), () => gotoDetailPageAndCreateRecord());
     });
-    quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(type: 'add_record', localizedTitle: '添加一笔', icon: 'ic_add'),
-    ]);
   }
 
   /// 设置列表回调

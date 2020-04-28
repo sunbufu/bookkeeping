@@ -16,9 +16,9 @@ class WeeklyBarChartItem extends StatelessWidget {
   List<DailyBalance> sevenDailyBalanceList = [];
 
   /// 最大值
-  int max = 10;
+  int max = 20;
   /// 系数
-  int factor = 1;
+  int factor = 20;
 
   WeeklyBarChartItem({MonthlyRecord monthlyRecord}) {
     this._monthlyRecord = monthlyRecord;
