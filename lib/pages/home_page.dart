@@ -142,8 +142,6 @@ class HomePageState extends State<HomePage> {
       const ShortcutItem(type: 'add_record', localizedTitle: '添加一笔', icon: 'ic_add'),
     ]);
     _quickActions.initialize((String shortcutType) {
-      print('on quick action callback ' + shortcutType);
-      Fluttertoast.showToast(msg: shortcutType);
       if ('add_record' == shortcutType)
         Future.delayed(Duration(milliseconds: 200), () => gotoDetailPageAndCreateRecord());
     });
