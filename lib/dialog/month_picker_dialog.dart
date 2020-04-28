@@ -1,14 +1,26 @@
 
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
 class MonthPickerDialog {
 
   /// 展示月份选择框
   static void showDialog(BuildContext context, String month, Function(DateTime) callback, ) {
+    bool isDarkMode = DarkModeUtil.isDarkMode(context);
     DatePicker.showPicker(
       context,
+      theme: DatePickerTheme(
+        cancelStyle: isDarkMode
+            ? TextStyle(color: Colors.white, fontSize: 16)
+            : TextStyle(color: Colors.black54, fontSize: 16),
+        itemStyle: isDarkMode
+            ? TextStyle(color: Colors.white, fontSize: 18)
+            : TextStyle(color: Color(0xFF000046), fontSize: 18),
+        backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
+      ),
       pickerModel: MonthPicker(currentTime: DateTimeUtil.getDateTimeByMonth(month)),
       locale: LocaleType.zh,
       onConfirm: (dateTime) {

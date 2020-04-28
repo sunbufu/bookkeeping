@@ -1,3 +1,4 @@
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/item/weekly_bar_chart_item.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
@@ -79,7 +80,7 @@ class MonthlyRecordItem extends StatelessWidget {
       margin: EdgeInsets.fromLTRB(10, 15, 10, 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(6.0)),
-        color: Colors.white,
+        color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
       ),
       child: Column(children: <Widget>[
         _getBalance(),

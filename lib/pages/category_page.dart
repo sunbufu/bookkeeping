@@ -1,5 +1,5 @@
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/runtime.dart';
-import 'package:bookkeeping/dialog/loading_dialog.dart';
 import 'package:bookkeeping/model/category.dart';
 import 'package:bookkeeping/model/category_tab.dart';
 import 'package:flutter/cupertino.dart';
@@ -48,7 +48,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: Color(0xEEEEEEEE),
+        backgroundColor: DarkModeUtil.isDarkMode(context) ? Colors.black : Color(0xFFEEEEEE),
         appBar: AppBar(
           centerTitle: true,
           title: TabBar(
@@ -80,7 +80,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
           margin: EdgeInsets.fromLTRB(10, 5, 10, 5),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(6.0)),
-            color: Colors.white,
+            color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
           ),
           child: Container(
             height: 60,

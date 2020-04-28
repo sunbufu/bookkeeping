@@ -1,3 +1,4 @@
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/model/daily_record.dart';
 import 'package:bookkeeping/model/record.dart';
@@ -21,7 +22,7 @@ class DailyRecordItem extends StatelessWidget {
       margin: EdgeInsets.fromLTRB(10, 15, 10, 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(6.0)),
-        color: Colors.white,
+        color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
       ),
       child: Column(children: rows),
     );

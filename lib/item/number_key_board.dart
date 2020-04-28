@@ -1,3 +1,4 @@
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:date_format/date_format.dart';
 import 'package:decimal/decimal.dart';
@@ -48,7 +49,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   }
 
   /// 边框颜色
-  Color _borderColor = Color(0x10333333);
+  Color _borderColor;
   
   void _onSaveRemark() {
     _remark = _remarkController.text;
@@ -154,9 +155,20 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = DarkModeUtil.isDarkMode(context);
+    _borderColor = isDarkMode ? Colors.grey : Color(0x10333333);
+    DatePickerTheme dateTimeTheme  = DatePickerTheme(
+      cancelStyle: isDarkMode
+          ? TextStyle(color: Colors.white, fontSize: 16)
+          : TextStyle(color: Colors.black54, fontSize: 16),
+      itemStyle: isDarkMode
+          ? TextStyle(color: Colors.white, fontSize: 18)
+          : TextStyle(color: Color(0xFF000046), fontSize: 18),
+      backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
+    );
     return Container(
       height: 300,
-      color: Colors.white,
+      color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
       child: Column(
         children: <Widget>[
           Container(
@@ -177,7 +189,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
               highlightedBorderColor: _borderColor,
               child: Text(DateTimeUtil.getDayByTimestamp(DateTimeUtil.getTimestampByDateTime(_dateTime))),
               onPressed: () {
-                DatePicker.showDatePicker(context,
+                DatePicker.showDatePicker(context, theme: dateTimeTheme,
                     locale: LocaleType.zh, currentTime: _dateTime, onConfirm: _changeDate);
               },
             ),
@@ -187,7 +199,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
               highlightedBorderColor: _borderColor,
               child: Text(formatDate(_dateTime, [HH, ':', nn, ':', ss])),
               onPressed: () {
-                DatePicker.showTimePicker(context,
+                DatePicker.showTimePicker(context, theme: dateTimeTheme,
                     locale: LocaleType.zh, currentTime: _dateTime, onConfirm: _changeTime);
               },
             ),
@@ -285,7 +297,7 @@ class NumberKeyBoardButtonState extends State<NumberKeyBoardButton> {
     Color _borderColor = Color(0x10333333);
 
     /// 字体样式
-    TextStyle _textStyle = TextStyle(color: Color(0xff333333), fontSize: 20.0);
+    TextStyle _textStyle = TextStyle(color: DarkModeUtil.isDarkMode(context) ? Colors.white : Color(0xff333333), fontSize: 20.0);
 
     return new Container(
         height: 50.0,

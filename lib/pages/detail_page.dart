@@ -1,5 +1,6 @@
 import 'package:bookkeeping/common/action_entry.dart';
 import 'package:bookkeeping/common/checked_entry.dart';
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/common/runtime.dart';
 import 'package:bookkeeping/item/category_item.dart';
@@ -62,7 +63,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xEEEEEEEE),
+      backgroundColor: DarkModeUtil.isDarkMode(context) ? Colors.black : Color(0xFFEEEEEE),
       appBar: AppBar(
         centerTitle: true,
         title: TabBar(
@@ -168,7 +169,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
           return Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(6.0)),
-              color: Colors.white,
+              color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
             ),
             margin: EdgeInsets.all(5),
             child: index < categoryTab.list.length

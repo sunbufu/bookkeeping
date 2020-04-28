@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bookkeeping/common/action_entry.dart';
 import 'package:bookkeeping/common/constants.dart';
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/common/runtime.dart';
 import 'package:bookkeeping/dialog/loading_dialog.dart';
@@ -362,7 +363,7 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xEEEEEEEE),
+      backgroundColor: DarkModeUtil.isDarkMode(context) ? Colors.black : Color(0xFFEEEEEE),
       appBar: AppBar(
         title: FlatButton.icon(
           onPressed: onTitlePress,
@@ -390,7 +391,10 @@ class HomePageState extends State<HomePage> {
       ),
       body: _dailyRecordListView,
       floatingActionButton: showFloatingButton
-          ? FloatingActionButton(child: Icon(Icons.add), onPressed: gotoDetailPageAndCreateRecord)
+          ? FloatingActionButton(
+              child: Icon(Icons.add, color: Colors.white,),
+              onPressed: gotoDetailPageAndCreateRecord,
+              backgroundColor: DarkModeUtil.isDarkMode(context) ? Colors.blue : Colors.blue)
           : Container(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

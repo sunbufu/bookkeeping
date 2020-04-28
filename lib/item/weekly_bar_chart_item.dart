@@ -1,4 +1,5 @@
 
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/model/daily_record.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
@@ -89,6 +90,7 @@ class WeeklyBarChartItem extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1.9,
       child: Card(
+        color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
         elevation: 0,
         child: BarChart(
           BarChartData(
@@ -109,7 +111,10 @@ class WeeklyBarChartItem extends StatelessWidget {
               show: true,
               bottomTitles: SideTitles(
                 showTitles: true,
-                textStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
+                textStyle: TextStyle(
+                    color: DarkModeUtil.isDarkMode(context) ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
                 margin: 5,
                 getTitles: (double value) => sevenDailyBalanceList[value.toInt()].day,
               ),

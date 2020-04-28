@@ -1,3 +1,4 @@
+import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/model/category.dart';
 import 'package:bookkeeping/common/checked_entry.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,7 +24,7 @@ class CategoryItem extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(6.0)),
-        color: Colors.white,
+        color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
       ),
       child: FlatButton(
           onPressed: () => _onPressed(_category),
