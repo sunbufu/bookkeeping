@@ -47,6 +47,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
   void initState() {
     super.initState();
     _tabController = TabController(length: tabs.length, vsync: this);
+    if (0 <= tabs.length) return;
     if (null != widget.record) {
       for (int i = 0; i < tabs.length; i++) {
         if (tabs[i].direction == widget.record.direction) {

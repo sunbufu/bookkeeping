@@ -31,7 +31,7 @@ class CategoryService {
   Future<void> fetchCategoryFromStorage(StorageAdapter storageAdapter) async {
     String content = await storageAdapter.read(Constants.CATEGORY_FILE_NAME);
     if ('' == content) {
-      _categoryTabList = List<CategoryTab>();
+      _categoryTabList = [CategoryTab(name: '支出', direction: 0), CategoryTab(name: '收入', direction: 1)];
     } else {
       _categoryTabList = List<CategoryTab>.from(json.decode(content).map((e) => CategoryTab.fromJson(e)));
     }
