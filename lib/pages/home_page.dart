@@ -148,7 +148,7 @@ class HomePageState extends State<HomePage> {
               context: context,
               child: AlertDialog(
                 title: Text('数据导出'),
-                  content: Text('导出时间的长短与网络和数据量有关，请勿将应用置于后台! 导出文件名为 【$exportFileName】。'),
+                  content: Text('导出时间的长短与网络和数据量有关，请勿将应用置于后台! 数据将被导出到 webdav 的【$exportFileName】上。'),
                   actions: <Widget>[
                   FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
                   FlatButton(
