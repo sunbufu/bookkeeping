@@ -7,10 +7,14 @@ class WebDavStorageServerConfiguration implements StorageServerConfiguration {
   String password;
 
   WebDavStorageServerConfiguration({
-    this.url,
-    this.username,
-    this.password,
-  });
+    String url,
+    String username,
+    String password,
+  }) {
+    this.url = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    this.username = username;
+    this.password = password;
+  }
 
   factory WebDavStorageServerConfiguration.fromJson(Map<String, dynamic> json) => WebDavStorageServerConfiguration(
         url: json["url"],

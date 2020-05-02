@@ -59,12 +59,12 @@ class WebDavLoginDialog extends SimpleDialog {
                   decoration: InputDecoration(
                     hintText: "webdav url",
                     suffixIcon: InkWell(
-                      onTap: () => launch('http://help.jianguoyun.com/?p=2064'),
+                      onTap: () => launch('https://sunbufu.github.io/2020/05/02/bookkeeping/'),
                       child: Icon(Icons.help),
                     ),
                   ),
                 ),
-                Text('例如: https://dav.jianguoyun.com/dav/bookkeeping', style: TextStyle(fontSize: 10),),
+                Text('例如: https://dav.jianguoyun.com/dav/bookkeeping', style: TextStyle(fontSize: 12),),
                 TextField(controller: _username, decoration: InputDecoration(hintText: "账号")),
                 TextField(controller: _password, decoration: InputDecoration(hintText: "密码"), obscureText: true),
                 Container(padding: EdgeInsets.all(10)),
@@ -80,7 +80,7 @@ class WebDavLoginDialog extends SimpleDialog {
                               Navigator.pop(context);
                             }
                           })),
-                ])
+                ]),
               ],
             ));
   }

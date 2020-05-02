@@ -129,10 +129,10 @@ class HomePageState extends State<HomePage> {
         Fluttertoast.showToast(msg: '清除成功');
       }),
       MenuItem('使用教程', () {
-        launch('https://sunbufu.github.io');
+        launch('https://www.sunbufu.club/2020/05/02/bookkeeping');
       }),
       MenuItem('关于我们', () {
-        launch('https://sunbufu.github.io/about');
+        launch('https://www.sunbufu.club/2020/05/02/bookkeeping/#%E5%9B%9B-%E5%85%B3%E4%BA%8E');
       }),
     ];
   }
