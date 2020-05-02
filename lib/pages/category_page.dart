@@ -1,5 +1,6 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/runtime.dart';
+import 'package:bookkeeping/dialog/loading_dialog.dart';
 import 'package:bookkeeping/model/category.dart';
 import 'package:bookkeeping/model/category_tab.dart';
 import 'package:flutter/cupertino.dart';
@@ -251,9 +252,9 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   /// 保存
   Future<void> _saveChange() async {
     changed = false;
-//    LoadingDialog.runWithLoading(context, '保存中', () {
+    LoadingDialog.runWithLoading(context, '保存中', () {
       Runtime.categoryService.categoryTabList = _categoryTabList;
-//    });
+    });
     Fluttertoast.showToast(msg: '保存成功');
   }
 }

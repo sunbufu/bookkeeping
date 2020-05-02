@@ -17,9 +17,11 @@ import 'package:bookkeeping/model/record.dart';
 import 'package:bookkeeping/model/user.dart';
 import 'package:bookkeeping/model/web_dav_storage_server_configuration.dart';
 import 'package:bookkeeping/pages/detail_page.dart';
+import 'package:bookkeeping/pages/import_page.dart';
 import 'package:bookkeeping/storage/storage_adapter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -128,6 +130,38 @@ class HomePageState extends State<HomePage> {
         Runtime.fileStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
         Fluttertoast.showToast(msg: '清除成功');
       }),
+      MenuItem('数据导入', () {
+        if (!Runtime.storageService.isReady) {
+          Fluttertoast.showToast(msg: 'webdav 连接未成功，请配置完成后再试');
+        } else {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProgressHUD(child: ImportPage()))).then((value) {
+            if (null != value && value is List<Record>) _importRecordList(value);
+          });
+        }
+      }),
+      MenuItem('数据导出', () {
+        if (!Runtime.storageService.isReady) {
+          Fluttertoast.showToast(msg: 'webdav 连接未成功，请配置完成后再试');
+        } else {
+          String exportFileName = Constants.getExportFileName(DateTimeUtil.getTimestamp());
+          showDialog(
+              context: context,
+              child: AlertDialog(
+                title: Text('数据导出'),
+                  content: Text('导出时间的长短与网络和数据量有关，请勿将应用置于后台! 导出文件名为 【$exportFileName】。'),
+                  actions: <Widget>[
+                  FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
+                  FlatButton(
+                      child: Text('导出'),
+                      onPressed: () {
+                      Navigator.pop(context);
+                      LoadingDialog.runWithLoadingAsync(context, '', () async {
+                        await _exportRecordList(exportFileName);
+                      });
+                    })
+              ]));
+        }
+      }),
       MenuItem('使用教程', () {
         launch('https://www.sunbufu.club/2020/05/02/bookkeeping');
       }),
@@ -135,6 +169,68 @@ class HomePageState extends State<HomePage> {
         launch('https://www.sunbufu.club/2020/05/02/bookkeeping/#%E5%9B%9B-%E5%85%B3%E4%BA%8E');
       }),
     ];
+  }
+
+  /// 数据导入
+  void _importRecordList(List<Record> recordList) {
+    LoadingDialog.show(context);
+    List<ModifiedRecordLog> modifiedRecordLogList =
+        recordList.map((record) => ModifiedRecordLog(record: record, operation: 1)).toList();
+    _addModifiedRecordLog(modifiedRecordLogList).then((_){
+      _saveRecordAndRefresh(
+          flush: true,
+          finishCallback: () {
+            LoadingDialog.dismiss();
+            Fluttertoast.showToast(msg: '导入成功');
+          });
+    });
+  }
+
+  /// 数据导出
+  void _exportRecordList(String exportFileName) async {
+    LoadingDialog.show(context);
+    // 获取全部数据
+    List<MonthlyRecord> monthlyRecordList = [];
+    List<String> fileNameList = await Runtime.storageService.list();
+    for (String fileName in fileNameList) {
+      if (!fileName.startsWith('monthly_record_')) continue;
+      String content = await Runtime.storageService.read(fileName);
+      if ('' == content) continue;
+      monthlyRecordList.add(MonthlyRecord.fromJson(json.decode(content)));
+    }
+    String exportContent = Constants.TEMPLATE_FILE_HEAD;
+    // 根据时间降序排序
+    monthlyRecordList.sort((a, b) => b.time - a.time);
+    for (MonthlyRecord monthlyRecord in monthlyRecordList) {
+      List<DailyRecord> dailyRecordList = monthlyRecord.records.values.toList();
+      dailyRecordList.sort((a, b) => b.time - a.time);
+      for (DailyRecord dailyRecord in dailyRecordList) {
+        List<Record> recordList = dailyRecord.records.values.toList();
+        recordList.sort((a, b) => b.time - a.time);
+        // 拼接数据
+        recordList.forEach((record) => exportContent += _convertRecordToCSV(record));
+      }
+    }
+    // 导出
+    await Runtime.storageService.write(exportFileName, exportContent);
+    LoadingDialog.dismiss();
+    Fluttertoast.showToast(msg: '导出成功');
+  }
+
+  /// 转化 record 为 csv 字符串
+  String _convertRecordToCSV(Record record) {
+    return DateTimeUtil.getYearMonthDayTimeByTimestamp(record.time) +
+        ',' +
+        record.category +
+        ',' +
+        (record.direction == 0 ? '支出' : '收入') +
+        ',' +
+        (record.amount / 100).toStringAsFixed(2) +
+        ',' +
+        record.remark +
+        ',' +
+        record.createdUser +
+        '\n';
   }
 
   void _initQuickAction() {
@@ -158,7 +254,7 @@ class HomePageState extends State<HomePage> {
   void onRecordListPress(Record record) {
     // 删除、修改
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => DetailPage(record: record)))
+        .push(MaterialPageRoute(builder: (_) => ProgressHUD(child: DetailPage(record: record))))
         .then((actionEntry) {
           if (null == actionEntry || !(actionEntry is ActionEntry<Record>)) return;
           ActionEntry<Record> action = actionEntry as ActionEntry<Record>;
@@ -201,7 +297,7 @@ class HomePageState extends State<HomePage> {
   ///  跳转到详情页，并创建记录
   void gotoDetailPageAndCreateRecord() async {
     // 增加
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => DetailPage())).then((actionEntry) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProgressHUD(child: DetailPage()))).then((actionEntry) {
       if (null == actionEntry || !(actionEntry is ActionEntry<Record>)) return;
       ActionEntry<Record> action = actionEntry as ActionEntry<Record>;
       if (null == action.newEntry || 0 >= action.newEntry.amount) return;
@@ -213,16 +309,17 @@ class HomePageState extends State<HomePage> {
   }
 
   /// 保存并刷新（先更新内存，刷新展示；再同步存储，刷新展示）
-  void _saveRecordAndRefresh() async {
+  void _saveRecordAndRefresh({bool flush: false, Function finishCallback}) async {
     Future.microtask(() {
       _saveRecordList().then((_) {
         _refreshRecordListView();
       });
     });
-    if (Runtime.syncEveryModify) {
+    if (Runtime.syncEveryModify || flush) {
       LoadingDialog.runWithLoadingAsync(context, '同步中...', () async {
         await _flushRecordToStorage(Runtime.storageService);
         _refreshRecordListView();
+        if (null != finishCallback) finishCallback();
       });
     }
   }

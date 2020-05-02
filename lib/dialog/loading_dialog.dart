@@ -3,6 +3,20 @@ import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 
 /// loading
 class LoadingDialog {
+
+  static var dialog;
+
+  static void show(BuildContext context) {
+    dismiss();
+    dialog = ProgressHUD.of(context);
+    dialog.show();
+  }
+
+  static void dismiss() {
+    if (null != dialog)
+      dialog.dismiss();
+  }
+
   /// 在 function 运行期间展示 loading
   static runWithLoading(BuildContext context, String title, Function() function) {
     var dialog = ProgressHUD.of(context);

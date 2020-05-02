@@ -1,4 +1,5 @@
 import 'package:date_format/date_format.dart';
+import 'package:intl/intl.dart';
 
 /// 日期时间工具类
 class DateTimeUtil {
@@ -25,8 +26,21 @@ class DateTimeUtil {
     return formatDate(getDateTimeByTimestamp(timestamp), [mm, '-', dd, ' ', hh, ':', nn]);
   }
 
+  static String getYearMonthDayTimeByTimestamp(int timestamp) {
+    return formatDate(getDateTimeByTimestamp(timestamp), [yyyy, '-', mm, '-', dd, ' ', hh, ':', nn, ':', ss]);
+  }
+
   static int getTimestampByString(String str) {
     DateTime dateTime = DateTime.tryParse(str);
+    if (null == dateTime) return 0;
+    return getTimestampByDateTime(dateTime);
+  }
+
+  static int getTimestampByFormat(String str, String format) {
+    DateTime dateTime = null;
+    try {
+      dateTime = DateFormat(format).parse(str);
+    } catch (e) {}
     if (null == dateTime) return 0;
     return getTimestampByDateTime(dateTime);
   }
@@ -49,6 +63,10 @@ class DateTimeUtil {
 
   static String getCompactMonthByTimestamp(int timestamp) {
     return formatDate(getDateTimeByTimestamp(timestamp), [yyyy, mm]);
+  }
+
+  static String getCompactMonthDayByTimestamp(int timestamp) {
+    return formatDate(getDateTimeByTimestamp(timestamp), [yyyy, mm, dd]);
   }
 
   static DateTime getDateTimeByTimestamp(int timestamp) {

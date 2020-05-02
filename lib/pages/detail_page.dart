@@ -11,6 +11,7 @@ import 'package:bookkeeping/model/record.dart';
 import 'package:bookkeeping/pages/category_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class DetailPage extends StatefulWidget {
@@ -186,7 +187,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
 
   void _onSettingPressed(int tabIndex) {
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => CategoryPage(defaultTabIndex: tabIndex)))
+        .push(MaterialPageRoute(builder: (_) => ProgressHUD(child: CategoryPage(defaultTabIndex: tabIndex))))
         .then((_) {
           _copyCategoryTab();
           setState(() {});

@@ -11,6 +11,17 @@ class Constants {
   /// 分类的文件名
   static const String CATEGORY_FILE_NAME = 'category.json';
 
+  /// 导入导出模板文件名
+  static const String TEMPLATE_FILE_NAME = 'template.csv';
+
+  /// 导入导出模板文件头
+  static const String TEMPLATE_FILE_HEAD = '时间,分类,收入或支出,金额,备注,用户昵称\n';
+
+  /// 获取导出文件名
+  static String getExportFileName(int time) {
+    return 'bookkeeping_'+DateTimeUtil.getCompactMonthDayByTimestamp(time)+'.csv';
+  }
+
   /// 获取月度记录文件名
   static String getMonthlyRecordFileNameByTime(int time) {
     return getMonthlyRecordFileName(DateTimeUtil.getCompactMonthByTimestamp(time));
