@@ -25,4 +25,10 @@ class Runtime {
 
   /// 分类服务
   static CategoryService categoryService = CategoryService();
+
+  /// 应用回到前台时监听
+  static List<Function> resumedListenerList = [];
+
+  /// 应用进入后台时监听
+  static List<Function> pausedListenerList = [];
 }

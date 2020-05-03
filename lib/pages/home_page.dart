@@ -61,8 +61,17 @@ class HomePageState extends State<HomePage> {
     _initMenuItem();
     // 初始化 quick action
     _initQuickAction();
+    // 添加暂停监听器
+    Runtime.pausedListenerList.add(_pausedListener);
 
     _init();
+  }
+
+  @override
+  void dispose() {
+    // 移除暂停监听器
+    Runtime.pausedListenerList.remove(_pausedListener);
+    super.dispose();
   }
 
   /// 异步初始化
@@ -78,7 +87,7 @@ class HomePageState extends State<HomePage> {
     // 设置列表回调
     _initRecordListCallBack();
   }
-  
+
   /// 重新获取存储中的数据
   Future<void> _refreshDataFromStorage(StorageAdapter storageAdapter) async {
     // 抓取分类数据
@@ -186,6 +195,11 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  /// 暂停监听器
+  void _pausedListener() {
+    _saveRecordAndRefresh(flush: true);
+  }
+
   /// 数据导出
   void _exportRecordList(String exportFileName) async {
     LoadingDialog.show(context);
@@ -288,6 +302,7 @@ class HomePageState extends State<HomePage> {
     MonthPickerDialog.showDialog(context, _month, (dateTime) {
       _month = DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
       LoadingDialog.runWithLoadingAsync(context, '加载中...', () async {
+        _flushRecordToStorage(Runtime.storageService);
         await _fetchRecordFromStorage(Runtime.storageService, _month);
         _refreshRecordListView();
       });
@@ -427,6 +442,7 @@ class HomePageState extends State<HomePage> {
   Future<void> _flushRecordToStorage(StorageAdapter storageAdapter) async {
     // 读取待提交的数据
     List<ModifiedRecordLog> modifiedRecordLogList = await _getModifiedRecordLogList();
+    if (modifiedRecordLogList.isEmpty) return;
     // 改动数据涉及到的月份
     Set<String> months = {DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestamp())};
     modifiedRecordLogList.forEach((log) => months.add(DateTimeUtil.getMonthByTimestamp(log.record.time)));

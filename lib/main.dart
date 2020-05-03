@@ -6,26 +6,60 @@ import 'pages/home_page.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
 
-  // This widget is the root of your application.
+  @override
+  State createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    print('------- [' + state.toString() + '] -------');
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Runtime.resumedListenerList.forEach((f) {
+          try {
+            f();
+          } catch (e) {
+            print("exception on resumedListener " + e);
+          }
+        });
+        break;
+      case AppLifecycleState.paused:
+        Runtime.pausedListenerList.forEach((f) {
+          try {
+            f();
+          } catch (e) {
+            print("exception on pausedListener " + e);
+          }
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'bookkeeping',
+      theme: ThemeData(primarySwatch: Colors.blue),
       darkTheme: ThemeData.dark(),
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
       home: ProgressHUD(child: HomePage()),
     );
   }
