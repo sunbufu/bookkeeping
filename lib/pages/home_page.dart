@@ -78,14 +78,22 @@ class HomePageState extends State<HomePage> {
   void _init() async {
     await _refreshDataFromStorage(Runtime.fileStorageAdapter);
     // 初始化用户配置
-    await _initUserProperties(Runtime.fileStorageAdapter, (user){
-      _initWebDavStorageServer(Runtime.user.storageServer as WebDavStorageServerConfiguration);
-      _flushRecordToStorage(Runtime.storageService).then((_) {
-        _refreshDataFromStorage(Runtime.storageService);
-      });
-    });
+    await _initUserProperties(Runtime.fileStorageAdapter);
     // 设置列表回调
     _initRecordListCallBack();
+  }
+
+  /// 设置完成用户配置后，刷新存储数据
+  void _afterSetUser() async {
+    _initWebDavStorageServer(Runtime.user.storageServer as WebDavStorageServerConfiguration);
+    try {
+      await Runtime.storageService.list();
+      await _flushRecordToStorage(Runtime.storageService);
+      await _refreshDataFromStorage(Runtime.storageService);
+      Fluttertoast.showToast(msg: '连接成功');
+    } catch (e) {
+      Fluttertoast.showToast(msg: '连接失败');
+    }
   }
 
   /// 重新获取存储中的数据
@@ -99,23 +107,23 @@ class HomePageState extends State<HomePage> {
   }
   
   /// 初始化用户配置
-  Future<void> _initUserProperties(StorageAdapter storageAdapter, Function(User user) callback) async {
+  Future<void> _initUserProperties(StorageAdapter storageAdapter) async {
     if (await Runtime.fileStorageAdapter.exist(Constants.USER_INFO_FILE_NAME)) {
       User user = User.fromJson(json.decode(await Runtime.fileStorageAdapter.read(Constants.USER_INFO_FILE_NAME)));
       Runtime.user = user;
-      if (null != callback) callback(user);
+      await _afterSetUser();
     } else {
       WebDavLoginDialog().show(context, null, (user) {
         Runtime.user = user;
         Runtime.fileStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
-        if (null != callback) callback(user);
+        _afterSetUser();
       });
     }
   }
 
   /// 初始化 webdav
   void _initWebDavStorageServer(WebDavStorageServerConfiguration configuration) {
-    LoadingDialog.runWithLoading(context, '连接中...', (){
+    LoadingDialog.runWithLoading(context, (){
       Runtime.storageService.init(
           configuration: configuration,
           success: (_) {},
@@ -129,11 +137,10 @@ class HomePageState extends State<HomePage> {
     // 准备 menu 数据
     _menuItemList = [
       MenuItem('设置账号', () =>
-          WebDavLoginDialog().show(context, Runtime.user, (user) async {
+          WebDavLoginDialog().show(context, Runtime.user, (user) {
             Runtime.user = user;
             Runtime.fileStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
-            _initWebDavStorageServer(Runtime.user.storageServer as WebDavStorageServerConfiguration);
-            _refreshDataFromStorage(Runtime.storageService);
+            _afterSetUser();
           })),
       MenuItem('清除缓存', () {
         Runtime.fileStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
@@ -164,7 +171,7 @@ class HomePageState extends State<HomePage> {
                       child: Text('导出'),
                       onPressed: () {
                       Navigator.pop(context);
-                      LoadingDialog.runWithLoadingAsync(context, '', () async {
+                      LoadingDialog.runWithLoadingAsync(context, () async {
                         await _exportRecordList(exportFileName);
                       });
                     })
@@ -301,7 +308,7 @@ class HomePageState extends State<HomePage> {
   void onTitlePress() {
     MonthPickerDialog.showDialog(context, _month, (dateTime) {
       _month = DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
-      LoadingDialog.runWithLoadingAsync(context, '加载中...', () async {
+      LoadingDialog.runWithLoadingAsync(context, () async {
         _flushRecordToStorage(Runtime.storageService);
         await _fetchRecordFromStorage(Runtime.storageService, _month);
         _refreshRecordListView();
@@ -331,7 +338,7 @@ class HomePageState extends State<HomePage> {
       });
     });
     if (Runtime.syncEveryModify || flush) {
-      LoadingDialog.runWithLoadingAsync(context, '同步中...', () async {
+      LoadingDialog.runWithLoadingAsync(context, () async {
         await _flushRecordToStorage(Runtime.storageService);
         _refreshRecordListView();
         if (null != finishCallback) finishCallback();
@@ -371,8 +378,8 @@ class HomePageState extends State<HomePage> {
     return List.from(json.decode(content).map((e) => ModifiedRecordLog.fromJson(e)));
   }
 
-  /// 获取存储的数据，并刷新到内存缓存
-  Future<void> _fetchRecordFromStorage(StorageAdapter storageAdapter, String month) async {
+  /// 获取存储的数据，并刷新到内存缓存（strict true 严谨模式下，如果读取失败抛出异常。非严谨模式下，会从本地读取）
+  Future<void> _fetchRecordFromStorage(StorageAdapter storageAdapter, String month, {bool strict : false}) async {
     String fileName = Constants.getMonthlyRecordFileNameByMonth(month);
     MonthlyRecord monthlyRecord;
     // 获取数据
@@ -381,14 +388,16 @@ class HomePageState extends State<HomePage> {
       try {
         content = await storageAdapter.read(fileName);
       } catch (e) {
-        Fluttertoast.showToast(msg: '连接失败，请检查网络和webdav配置');
+        if (strict) rethrow;
       }
-      if ('' != content) monthlyRecord = MonthlyRecord.fromJson(json.decode(content));
-      // 更新内存
-      _monthlyRecordMap[month] = monthlyRecord;
-      // 覆盖本地数据
-      if (storageAdapter != Runtime.fileStorageAdapter)
-        Runtime.fileStorageAdapter.write(fileName, content);
+      if ('' != content) {
+        monthlyRecord = MonthlyRecord.fromJson(json.decode(content));
+        // 更新内存
+        _monthlyRecordMap[month] = monthlyRecord;
+        // 覆盖本地数据
+        if (storageAdapter != Runtime.fileStorageAdapter)
+          Runtime.fileStorageAdapter.write(fileName, content);
+      }
     }
     // 本地数据
     if (null == monthlyRecord) await _fetchRecordFromLocal(month);
@@ -447,7 +456,7 @@ class HomePageState extends State<HomePage> {
     Set<String> months = {DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestamp())};
     modifiedRecordLogList.forEach((log) => months.add(DateTimeUtil.getMonthByTimestamp(log.record.time)));
     for (String month in months) {
-      await _fetchRecordFromStorage(Runtime.storageService, month);
+      await _fetchRecordFromStorage(Runtime.storageService, month, strict: true);
     }
     // 变更应用到本地数据
     modifiedRecordLogList.forEach((log) {
@@ -485,12 +494,18 @@ class HomePageState extends State<HomePage> {
         ),
         centerTitle: true,
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.sync), onPressed: () {
-              LoadingDialog.runWithLoadingAsync(context, '同步中...', () async {
+          IconButton(icon: Icon(Icons.sync), onPressed: () async {
+            LoadingDialog.runWithLoadingAsync(context, () async {
+              try {
                 await _flushRecordToStorage(Runtime.storageService);
-                _refreshRecordListView();
+                await _fetchRecordFromStorage(Runtime.storageService, _month).then((_) {
+                  _refreshRecordListView();
+                });
                 Fluttertoast.showToast(msg: '同步完成');
-              });
+              } catch (e) {
+                Fluttertoast.showToast(msg: 'webdav连接失败');
+              }
+            });
           }),
           PopupMenuButton<MenuItem>(
             onSelected: (menuItem) => menuItem.onSelected(),

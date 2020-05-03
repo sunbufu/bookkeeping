@@ -58,7 +58,8 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
       }
     } else {
       // 新建情况下默认选中第一个分类
-      tabs[0].list[0].checked = true;
+      if(0 < tabs[0].list.length)
+        tabs[0].list[0].checked = true;
     }
   }
 

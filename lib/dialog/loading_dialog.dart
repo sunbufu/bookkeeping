@@ -18,7 +18,7 @@ class LoadingDialog {
   }
 
   /// 在 function 运行期间展示 loading
-  static runWithLoading(BuildContext context, String title, Function() function) {
+  static runWithLoading(BuildContext context, Function() function) {
     var dialog = ProgressHUD.of(context);
     dialog.show();
     try {
@@ -29,7 +29,7 @@ class LoadingDialog {
   }
 
   /// 在 function 运行期间展示 loading
-  static runWithLoadingAsync(BuildContext context, String title, Function() function) async {
+  static runWithLoadingAsync(BuildContext context, Function() function) async {
     var dialog = ProgressHUD.of(context);
     dialog.show();
     try {

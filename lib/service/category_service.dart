@@ -11,7 +11,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 class CategoryService {
 
   /// 分类 tab
-  static List<CategoryTab> _categoryTabList = [];
+  static List<CategoryTab> _categoryTabList = [CategoryTab(name: '支出', direction: 0), CategoryTab(name: '收入', direction: 1)];
 
   List<CategoryTab> get categoryTabList => _categoryTabList;
 
@@ -30,9 +30,7 @@ class CategoryService {
   /// 从存储中重新获取分类数据
   Future<void> fetchCategoryFromStorage(StorageAdapter storageAdapter) async {
     String content = await storageAdapter.read(Constants.CATEGORY_FILE_NAME);
-    if ('' == content) {
-      _categoryTabList = [CategoryTab(name: '支出', direction: 0), CategoryTab(name: '收入', direction: 1)];
-    } else {
+    if ('' != content) {
       _categoryTabList = List<CategoryTab>.from(json.decode(content).map((e) => CategoryTab.fromJson(e)));
     }
     // 保存数据到本地文件存储
