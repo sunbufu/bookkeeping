@@ -1,5 +1,6 @@
 import 'package:bookkeeping/model/user.dart';
 import 'package:bookkeeping/service/category_service.dart';
+import 'package:bookkeeping/service/frequently_mark_service.dart';
 import 'package:bookkeeping/service/storage_service.dart';
 import 'package:bookkeeping/storage/file_storage_adapter.dart';
 
@@ -31,4 +32,13 @@ class Runtime {
 
   /// 应用进入后台时监听
   static List<Function> pausedListenerList = [];
+
+  /// 常用备注服务
+  static FrequentlyMarkService frequentlyMarkService = FrequentlyMarkService();
+
+  /// 常用备注列表
+  static get frequentlyMarkList => frequentlyMarkService.frequentlyMarkList;
+
+  /// 添加常用备注
+  static void addFrequentlyMark(String mark) => frequentlyMarkService.addFrequentlyMark(mark);
 }

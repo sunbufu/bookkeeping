@@ -1,5 +1,6 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
+import 'package:bookkeeping/common/runtime.dart';
 import 'package:date_format/date_format.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,6 +40,9 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
 
   TextEditingController _remarkController;
 
+  /// 备注弹框内容
+  List<Widget> markDialogRow;
+
   NumberKeyBoardState(int amount, DateTime dateTime, String remark) {
     _valueStr = (Decimal.fromInt(amount) / Decimal.fromInt(100)).toString();
     _dateTime = dateTime;
@@ -50,9 +54,11 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
 
   /// 边框颜色
   Color _borderColor;
-  
-  void _onSaveRemark() {
-    _remark = _remarkController.text;
+
+  /// 设置备注
+  void _onSetRemark(String remark) {
+    _remark = remark;
+    _remarkController.text = _remark;
     setState(() {});
   }
 
@@ -144,6 +150,8 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   }
 
   void _onSaveButtonPressed() {
+    // 记录本次使用的备注
+    Runtime.addFrequentlyMark(_remark);
     if (null != widget._callback)
       widget._callback((Decimal.parse(_valueStr) * Decimal.fromInt(100)).toInt(), _dateTime, _remark);
   }
@@ -151,6 +159,41 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   String _getValueShowString() {
     if ('0' == _value0Str) return _valueStr;
     return _value0Str + (operation == 1 ? '+' : '-') + _valueStr;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    markDialogRow = _getMarkDialogRow();
+  }
+
+  List<Widget> _getMarkDialogRow() {
+    List<Widget> result = [
+      TextField(controller: _remarkController, decoration: InputDecoration(hintText: '请输入备注'), autofocus: true),
+      Container(margin: EdgeInsets.only(top: 10))
+    ];
+    // 常用备注
+    int columnNumber = 4;
+    for (int i = 0; i < Runtime.frequentlyMarkList.length; i += columnNumber) {
+      List<Widget> children = [];
+      for (int j = i; j < i + columnNumber; j++) {
+        if (j >= Runtime.frequentlyMarkList.length) continue;
+        children.add(Container(
+            height: 40,
+            width: 60,
+            margin: EdgeInsets.all(2),
+            child: FlatButton(
+                padding: EdgeInsets.all(0),
+                child: Text(Runtime.frequentlyMarkList[j], maxLines: 1, overflow: TextOverflow.ellipsis),
+                onPressed: () {
+                  _onSetRemark(Runtime.frequentlyMarkList[j]);
+                  Navigator.pop(context);
+                }),
+        ));
+      }
+      result.add(Row(mainAxisAlignment: MainAxisAlignment.center, children: children));
+    }
+    return result;
   }
 
   @override
@@ -184,7 +227,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
           ),
           Row(children: <Widget>[
             OutlineButton(
-              shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               borderSide: BorderSide(color: _borderColor),
               highlightedBorderColor: _borderColor,
               child: Text(DateTimeUtil.getDayByTimestamp(DateTimeUtil.getTimestampByDateTime(_dateTime))),
@@ -194,7 +237,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
               },
             ),
             OutlineButton(
-              shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               borderSide: BorderSide(color: _borderColor),
               highlightedBorderColor: _borderColor,
               child: Text(formatDate(_dateTime, [HH, ':', nn, ':', ss])),
@@ -204,7 +247,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
               },
             ),
             OutlineButton(
-              shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               borderSide: BorderSide(color: _borderColor),
               highlightedBorderColor: _borderColor,
               child: Container(
@@ -216,11 +259,12 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
                   context: context,
                   child: AlertDialog(
                     title: Text('备注'),
-                    content: TextField(controller: _remarkController, decoration: InputDecoration(hintText: '请输入备注'), autofocus: true,),
+                    content: Container(width: 300, height: 60.0 + 60 * (markDialogRow.length - 2),
+                        child: Column(children: markDialogRow)),
                     actions: <Widget>[
                       FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context),),
                       FlatButton(child: Text('确认'), onPressed: () {
-                        _onSaveRemark();
+                        _onSetRemark(_remarkController.text);
                         Navigator.pop(context);
                       },),
                     ],
@@ -303,7 +347,7 @@ class NumberKeyBoardButtonState extends State<NumberKeyBoardButton> {
         height: 50.0,
         width: _screenWidth / 4,
         child: new OutlineButton(
-          shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(0.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
           borderSide: BorderSide(color: _borderColor),
           highlightedBorderColor: _borderColor,
           child: null != widget.icon ? Icon(widget.icon) : Text(widget.title, style: _textStyle),

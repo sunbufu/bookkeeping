@@ -11,6 +11,9 @@ class Constants {
   /// 分类的文件名
   static const String CATEGORY_FILE_NAME = 'category.json';
 
+  /// 常用备注的文件名
+  static const String FREQUENTLY_MARK_FILE_NAME = 'frequently_mark.json';
+
   /// 导入导出模板文件名
   static const String TEMPLATE_FILE_NAME = 'template.csv';
 

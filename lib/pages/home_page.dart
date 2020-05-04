@@ -81,6 +81,8 @@ class HomePageState extends State<HomePage> {
     await _initUserProperties(Runtime.fileStorageAdapter);
     // 设置列表回调
     _initRecordListCallBack();
+    // 抓取常用备注数据
+    Runtime.frequentlyMarkService.fetchFrequentlyMarkList(Runtime.fileStorageAdapter);
   }
 
   /// 设置完成用户配置后，刷新存储数据

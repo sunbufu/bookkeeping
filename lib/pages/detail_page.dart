@@ -92,12 +92,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
                     title: Text('提示'),
                     content: Text('确认删除该记录吗？'),
                     actions: <Widget>[
-                      FlatButton(
-                        child: Text('取消'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
+                      FlatButton(child: Text('取消'), onPressed: () => Navigator.of(context).pop()),
                       FlatButton(
                         child: Text('确定'),
                         onPressed: () {
