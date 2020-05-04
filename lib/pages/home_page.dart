@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bookkeeping/common/action_entry.dart';
 import 'package:bookkeeping/common/constants.dart';
@@ -261,8 +262,10 @@ class HomePageState extends State<HomePage> {
       const ShortcutItem(type: 'add_record', localizedTitle: '添加一笔', icon: 'ic_add'),
     ]);
     _quickActions.initialize((String shortcutType) {
-      if ('add_record' == shortcutType)
-        Future.delayed(Duration(milliseconds: 200), () => gotoDetailPageAndCreateRecord());
+      if ('add_record' == shortcutType && !Runtime.detailPageShowing) {
+        Runtime.detailPageShowing = true;
+        Future.delayed(Duration(milliseconds: Platform.isAndroid ? 200 : 700), () => gotoDetailPageAndCreateRecord());
+      }
     });
   }
 
@@ -275,26 +278,22 @@ class HomePageState extends State<HomePage> {
   /// 列表点击
   void onRecordListPress(Record record) {
     // 删除、修改
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => ProgressHUD(child: DetailPage(record: record))))
-        .then((actionEntry) {
-          if (null == actionEntry || !(actionEntry is ActionEntry<Record>)) return;
-          ActionEntry<Record> action = actionEntry as ActionEntry<Record>;
-          if (action.oldEntry == action.newEntry) return;
-          if (action.deleted) {
-            _addModifiedRecordLog([ModifiedRecordLog(record: action.oldEntry, operation: 0)]).then((_) {
-              _saveRecordAndRefresh();
-            });
-          } else if (action.oldEntry != action.newEntry) {
-            action.newEntry.createdUser = Runtime.username;
-            _addModifiedRecordLog([
-              ModifiedRecordLog(record: action.oldEntry, operation: 0),
-              ModifiedRecordLog(record: action.newEntry, operation: 1)
-            ]).then((_){
-              _saveRecordAndRefresh();
-            });
-          }
+    gotoDetailPage(record: record, callback: (action) {
+      if (action.oldEntry == action.newEntry) return;
+      if (action.deleted) {
+        _addModifiedRecordLog([ModifiedRecordLog(record: action.oldEntry, operation: 0)]).then((_) {
+          _saveRecordAndRefresh();
         });
+      } else if (action.oldEntry != action.newEntry) {
+        action.newEntry.createdUser = Runtime.username;
+        _addModifiedRecordLog([
+          ModifiedRecordLog(record: action.oldEntry, operation: 0),
+          ModifiedRecordLog(record: action.newEntry, operation: 1)
+        ]).then((_){
+          _saveRecordAndRefresh();
+        });
+      }
+    });
   }
 
   /// 列表监听器
@@ -317,12 +316,20 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  ///  跳转到详情页
+  void gotoDetailPage({Record record, Function(ActionEntry<Record>) callback}) async {
+    Runtime.detailPageShowing = true;
+    // 增加
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProgressHUD(child: DetailPage(record: record)))).then((actionEntry) {
+      Runtime.detailPageShowing = false;
+      if (null == actionEntry || !(actionEntry is ActionEntry<Record>)) return;
+      if (null != callback) callback(actionEntry);
+    });
+  }
+
   ///  跳转到详情页，并创建记录
   void gotoDetailPageAndCreateRecord() async {
-    // 增加
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProgressHUD(child: DetailPage()))).then((actionEntry) {
-      if (null == actionEntry || !(actionEntry is ActionEntry<Record>)) return;
-      ActionEntry<Record> action = actionEntry as ActionEntry<Record>;
+    gotoDetailPage(callback: (action) {
       if (null == action.newEntry || 0 >= action.newEntry.amount) return;
       action.newEntry.createdUser = Runtime.username;
       _addModifiedRecordLog([ModifiedRecordLog(record: action.newEntry, operation: 1)]).then((_) {

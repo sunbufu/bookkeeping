@@ -41,4 +41,7 @@ class Runtime {
 
   /// 添加常用备注
   static void addFrequentlyMark(String mark) => frequentlyMarkService.addFrequentlyMark(mark);
+
+  /// 详情页面有没有展示
+  static bool detailPageShowing = false;
 }
