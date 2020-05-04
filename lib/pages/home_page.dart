@@ -90,7 +90,6 @@ class HomePageState extends State<HomePage> {
       await Runtime.storageService.list();
       await _flushRecordToStorage(Runtime.storageService);
       await _refreshDataFromStorage(Runtime.storageService);
-      Fluttertoast.showToast(msg: '连接成功');
     } catch (e) {
       Fluttertoast.showToast(msg: '连接失败');
     }
@@ -498,7 +497,7 @@ class HomePageState extends State<HomePage> {
             LoadingDialog.runWithLoadingAsync(context, () async {
               try {
                 await _flushRecordToStorage(Runtime.storageService);
-                await _fetchRecordFromStorage(Runtime.storageService, _month).then((_) {
+                await _fetchRecordFromStorage(Runtime.storageService, _month, strict: true).then((_) {
                   _refreshRecordListView();
                 });
                 Fluttertoast.showToast(msg: '同步完成');

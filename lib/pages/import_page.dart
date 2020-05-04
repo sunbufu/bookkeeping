@@ -32,7 +32,7 @@ class ImportPageState extends State<ImportPage> {
     if (recordContentList.isEmpty && content.contains('\n')) recordContentList = content.split('\n');
     LoadingDialog.dismiss();
     if (1 >= recordContentList.length) {
-      setState(() => stepThreeMessage = '导入失败，未读取到有效数据，请检查文件后重试');
+      setState(() => stepThreeMessage = '\n【导入失败，未读取到有效数据，请检查文件后重试】');
       return;
     }
     // 转化为 record
@@ -43,7 +43,7 @@ class ImportPageState extends State<ImportPage> {
       try {
         record = _convert(recordContentList[i].split(','));
       } catch (e) {
-        setState(() => stepThreeMessage = '导入失败，第 ${i + 1} 行数据有误，请检查后重试');
+        setState(() => stepThreeMessage = '\n【导入失败，第 ${i + 1} 行数据有误，请检查后重试】');
         return;
       }
       if (null == record) continue;
@@ -58,7 +58,7 @@ class ImportPageState extends State<ImportPage> {
           Navigator.pop(context);
         }),
         FlatButton(child: Text('导入'), onPressed: () {
-          setState(() => stepThreeMessage = '导入成功');
+          setState(() => stepThreeMessage = '\n【导入成功】');
           Navigator.pop(context);
           Navigator.pop(context, recordList);
         })
@@ -92,29 +92,35 @@ class ImportPageState extends State<ImportPage> {
       appBar: AppBar(title: Text('数据导入'), centerTitle: true),
       body: Container(
         constraints: BoxConstraints.expand(),
-        margin: EdgeInsets.all(10),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.only(left: 20, right: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(6.0)),
           color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-          Text('1. 生成模板', style: TextStyle(fontSize: 20)),
-            RaisedButton(child: Text('生成模版'), onPressed: () {
-              Runtime.storageService.write(Constants.TEMPLATE_FILE_NAME, Constants.TEMPLATE_FILE_HEAD);
-              setState(() => stepOneMessage = '生成成功，请在 webdav 服务器中查看 ${Constants.TEMPLATE_FILE_NAME}');
-                  }),
-            Text('$stepOneMessage'),
-            Container(margin: EdgeInsets.only(top: 20)),
-            Text('2. 适配数据', style: TextStyle(fontSize: 20)),
-            Text('在 ${Constants.TEMPLATE_FILE_NAME} 中补充待导入的数据'),
-            Container(margin: EdgeInsets.only(top: 20)),
-            Text('3. 数据导入', style: TextStyle(fontSize: 20)),
-            RaisedButton(child: Text('数据导入'), onPressed: () => _import()),
-            Text('$stepThreeMessage'),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(margin: EdgeInsets.only(top: 20)),
+              Text('1. 生成模板', style: TextStyle(fontSize: 20)),
+              OutlineButton(child: Text('生成模版'), onPressed: () {
+                Runtime.storageService.write(Constants.TEMPLATE_FILE_NAME, Constants.TEMPLATE_FILE_HEAD);
+                setState(() => stepOneMessage = '\n【生成成功】');
+              }),
+              Text('点击"生成模版"，在 webdav 服务器中查看。$stepOneMessage'),
+              Image(image: AssetImage('images/import_step1.png')),
+              Container(margin: EdgeInsets.only(top: 20)),
+              Text('2. 适配数据', style: TextStyle(fontSize: 20)),
+              Text('下载模板"${Constants.TEMPLATE_FILE_NAME}"，按照模板补充待导入的数据。'),
+              Image(image: AssetImage('images/import_step2.png')),
+              Text('注：时间、分类、收入或支出、金额为必填项。', style: TextStyle(fontSize: 11, color: Colors.red)),
+              Container(margin: EdgeInsets.only(top: 20)),
+              Text('3. 数据导入', style: TextStyle(fontSize: 20)),
+              OutlineButton(child: Text('数据导入'), onPressed: () => _import()),
+              Text('上传表格到 webdav 服务器，点击"数据导入"导入数据。$stepThreeMessage'),
+              Container(margin: EdgeInsets.only(top: 20)),
+            ],
+          ),
         ),
       )
     );
