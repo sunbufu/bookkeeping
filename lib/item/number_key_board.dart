@@ -14,16 +14,18 @@ class NumberKeyBoard extends StatefulWidget {
   final int _amount;
   final DateTime _dateTime;
   final String _remark;
-  final Function(int, DateTime, String) _callback;
+  final String _creator;
+  final Function(int, DateTime, String, String) _callback;
 
-  NumberKeyBoard({int amount, DateTime dateTime, String remark, Function(int, DateTime, String) callback})
+  NumberKeyBoard({int amount, DateTime dateTime, String remark, String creator, Function(int, DateTime, String, String) callback})
       : this._amount = amount,
         this._dateTime = dateTime ?? DateTime.now(),
         this._remark = remark,
+        this._creator = creator ?? '',
         this._callback = callback;
   
   @override
-  State<StatefulWidget> createState() => NumberKeyBoardState(_amount, _dateTime, _remark);
+  State<StatefulWidget> createState() => NumberKeyBoardState(_amount, _dateTime, _remark, _creator);
 }
 
 class NumberKeyBoardState extends State<NumberKeyBoard> {
@@ -38,18 +40,26 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   /// 备注
   String _remark = '';
 
+  /// 创建人
+  String _creator = '';
+
   TextEditingController _remarkController;
 
-  /// 备注弹框内容
-  List<Widget> markDialogRow;
+  TextEditingController _creatorController;
 
-  NumberKeyBoardState(int amount, DateTime dateTime, String remark) {
+  /// 备注弹框内容
+  List<Widget> _markDialogRow;
+
+  NumberKeyBoardState(int amount, DateTime dateTime, String remark, String creator) {
     _valueStr = (Decimal.fromInt(amount) / Decimal.fromInt(100)).toString();
     _dateTime = dateTime;
     _remark = remark;
+    _creator = creator;
 
     _remarkController = TextEditingController();
     _remarkController.text = _remark;
+    _creatorController = TextEditingController();
+    _creatorController.text = _creator;
   }
 
   /// 边框颜色
@@ -59,6 +69,13 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   void _onSetRemark(String remark) {
     _remark = remark;
     _remarkController.text = _remark;
+    setState(() {});
+  }
+
+  /// 设置创建人
+  void _onSetCreator(String creator) {
+    _creator = creator;
+    _creatorController.text = _creator;
     setState(() {});
   }
 
@@ -153,7 +170,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
     // 记录本次使用的备注
     Runtime.addFrequentlyMark(_remark);
     if (null != widget._callback)
-      widget._callback((Decimal.parse(_valueStr) * Decimal.fromInt(100)).toInt(), _dateTime, _remark);
+      widget._callback((Decimal.parse(_valueStr) * Decimal.fromInt(100)).toInt(), _dateTime, _remark, _creator);
   }
 
   String _getValueShowString() {
@@ -161,10 +178,9 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
     return _value0Str + (operation == 1 ? '+' : '-') + _valueStr;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    markDialogRow = _getMarkDialogRow();
+  List<Widget> get markDialogRow {
+    if (null == _markDialogRow) _markDialogRow = _getMarkDialogRow();
+    return _markDialogRow;
   }
 
   List<Widget> _getMarkDialogRow() {
@@ -226,7 +242,9 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
             ),
           ),
           Row(children: <Widget>[
+            Container(margin: EdgeInsets.only(left: 2)),
             OutlineButton(
+              padding: EdgeInsets.only(left: 2, right: 2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               borderSide: BorderSide(color: _borderColor),
               highlightedBorderColor: _borderColor,
@@ -236,7 +254,9 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
                     locale: LocaleType.zh, currentTime: _dateTime, onConfirm: _changeDate);
               },
             ),
+            Container(margin: EdgeInsets.only(left: 2)),
             OutlineButton(
+              padding: EdgeInsets.only(left: 2, right: 2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               borderSide: BorderSide(color: _borderColor),
               highlightedBorderColor: _borderColor,
@@ -246,12 +266,14 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
                     locale: LocaleType.zh, currentTime: _dateTime, onConfirm: _changeTime);
               },
             ),
+            Container(margin: EdgeInsets.only(left: 2)),
             OutlineButton(
+              padding: EdgeInsets.only(left: 2, right: 2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               borderSide: BorderSide(color: _borderColor),
               highlightedBorderColor: _borderColor,
               child: Container(
-                constraints: BoxConstraints(maxWidth: 100),
+                constraints: BoxConstraints(maxWidth: 70),
                 child: Text('' == _remark ? '备注' : _remark, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
               onPressed: () {
@@ -262,16 +284,44 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
                     content: Container(width: 300, height: 60.0 + 60 * (markDialogRow.length - 2),
                         child: Column(children: markDialogRow)),
                     actions: <Widget>[
-                      FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context),),
+                      FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
                       FlatButton(child: Text('确认'), onPressed: () {
                         _onSetRemark(_remarkController.text);
                         Navigator.pop(context);
-                      },),
+                      }),
                     ],
                   ),
                 );
               },
             ),
+            Container(margin: EdgeInsets.only(left: 2)),
+            OutlineButton(
+              padding: EdgeInsets.only(left: 2, right: 2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              borderSide: BorderSide(color: _borderColor),
+              highlightedBorderColor: _borderColor,
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 70),
+                child: Text('' == _creator ? '创建人' : _creator, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  child: AlertDialog(
+                    title: Text('创建人'),
+                    content: TextField(controller: _creatorController, decoration: InputDecoration(hintText: '请输入创建人'), autofocus: true,),
+                    actions: <Widget>[
+                      FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
+                      FlatButton(child: Text('确认'), onPressed: () {
+                        _onSetCreator(_creatorController.text);
+                        Navigator.pop(context);
+                      }),
+                    ],
+                  ),
+                );
+              },
+            ),
+            Container(margin: EdgeInsets.only(left: 2)),
           ]),
           Row(children: <Widget>[
             NumberKeyBoardButton(title: '7', onPressed: () => _onNumberButtonPressed(7)),
@@ -343,10 +393,10 @@ class NumberKeyBoardButtonState extends State<NumberKeyBoardButton> {
     /// 字体样式
     TextStyle _textStyle = TextStyle(color: DarkModeUtil.isDarkMode(context) ? Colors.white : Color(0xff333333), fontSize: 20.0);
 
-    return new Container(
+    return Container(
         height: 50.0,
         width: _screenWidth / 4,
-        child: new OutlineButton(
+        child: OutlineButton(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0.0)),
           borderSide: BorderSide(color: _borderColor),
           highlightedBorderColor: _borderColor,

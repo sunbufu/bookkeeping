@@ -127,7 +127,8 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
                 amount: null != widget.record ? widget.record.amount : 0,
                 dateTime: null != widget.record ? DateTimeUtil.getDateTimeByTimestamp(widget.record.time) : null,
                 remark: null != widget.record ? widget.record.remark : '',
-                callback: (value, dateTime, remark) {
+                creator: null != widget.record ? widget.record.createdUser : Runtime.user.username,
+                callback: (value, dateTime, remark, createdUser) {
                   Category category = _getCheckedCategory();
                   if (null == category) {
                     Fluttertoast.showToast(msg: '请选择分类');
@@ -141,6 +142,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
                   newRecord.direction = category.direction;
                   newRecord.category = category.name;
                   newRecord.remark = remark;
+                  newRecord.createdUser = createdUser;
                   newRecord.time = DateTimeUtil.getTimestampByDateTime(dateTime);
                   newRecord.createdTime = DateTimeUtil.getTimestamp();
                   Navigator.pop(context, ActionEntry(oldEntry: widget.record, newEntry: newRecord, deleted: false));

@@ -24,7 +24,7 @@ class Record {
   // 创建时间
   int createdTime;
 
-  // 创建者
+  // 创建人
   String createdUser;
 
   Record(
