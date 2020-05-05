@@ -7,14 +7,22 @@ class LoadingDialog {
   static var dialog;
 
   static void show(BuildContext context) {
-    dismiss();
-    dialog = ProgressHUD.of(context);
-    dialog.show();
+    try {
+      dismiss();
+      dialog = ProgressHUD.of(context);
+      dialog.show();
+    } catch (e) {
+      print('get e when call LoadingDialog.show() $e');
+    }
   }
 
   static void dismiss() {
-    if (null != dialog)
-      dialog.dismiss();
+    try {
+      if (null != dialog)
+        dialog.dismiss();
+    } catch (e) {
+      print('get e when call LoadingDialog.show() $e');
+    }
   }
 
   /// 在 function 运行期间展示 loading

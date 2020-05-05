@@ -19,6 +19,7 @@ import 'package:bookkeeping/model/user.dart';
 import 'package:bookkeeping/model/web_dav_storage_server_configuration.dart';
 import 'package:bookkeeping/pages/detail_page.dart';
 import 'package:bookkeeping/pages/import_page.dart';
+import 'package:bookkeeping/pages/statistic_page.dart';
 import 'package:bookkeeping/storage/storage_adapter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -35,9 +36,6 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   /// 菜单
   List<MenuItem> _menuItemList = [];
-
-  /// 月度记录
-  Map<String, MonthlyRecord> _monthlyRecordMap = {};
 
   /// 标题
   String _title = 'bookkeeping';
@@ -103,7 +101,7 @@ class HomePageState extends State<HomePage> {
     // 抓取分类数据
     Runtime.categoryService.fetchCategoryFromStorage(storageAdapter);
     // 抓取列表数据
-    await _fetchRecordFromStorage(storageAdapter, _month);
+    await Runtime.recordService.fetchRecordFromStorage(storageAdapter, _month);
     // 刷新列表页面
     _refreshRecordListView();
   }
@@ -138,6 +136,9 @@ class HomePageState extends State<HomePage> {
   void _initMenuItem() {
     // 准备 menu 数据
     _menuItemList = [
+      MenuItem('统计分析', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => ProgressHUD(child: StatisticPage(_month))));
+      }),
       MenuItem('设置账号', () =>
           WebDavLoginDialog().show(context, Runtime.user, (user) {
             Runtime.user = user;
@@ -310,7 +311,7 @@ class HomePageState extends State<HomePage> {
       _month = DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
       LoadingDialog.runWithLoadingAsync(context, () async {
         _flushRecordToStorage(Runtime.storageService);
-        await _fetchRecordFromStorage(Runtime.storageService, _month);
+        await Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, _month);
         _refreshRecordListView();
       });
     });
@@ -356,16 +357,16 @@ class HomePageState extends State<HomePage> {
 
   /// 使用内存数据刷新列表组件
   Future<void> _refreshRecordListView() async {
-    _dailyRecordListView.setMonthRecord(_monthlyRecordMap[_month]);
+    _dailyRecordListView.setMonthRecord(Runtime.monthlyRecordMap[_month]);
     setState(() => _title = _month);
   }
 
   /// 获取内存中日份的记录
   DailyRecord _getDailyRecord(String day) {
     String month = DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestampByDay(day));
-    if (null == _monthlyRecordMap[month])
-      _monthlyRecordMap[month] = MonthlyRecord(time: DateTimeUtil.getTimestampByMonth(month));
-    MonthlyRecord monthlyRecord = _monthlyRecordMap[month];
+    if (null == Runtime.monthlyRecordMap[month])
+      Runtime.monthlyRecordMap[month] = MonthlyRecord(time: DateTimeUtil.getTimestampByMonth(month));
+    MonthlyRecord monthlyRecord = Runtime.monthlyRecordMap[month];
     if (null == monthlyRecord.records[day])
       monthlyRecord.records[day] = DailyRecord(time: DateTimeUtil.getTimestampByDay(day));
     return monthlyRecord.records[day];
@@ -386,48 +387,6 @@ class HomePageState extends State<HomePage> {
     return List.from(json.decode(content).map((e) => ModifiedRecordLog.fromJson(e)));
   }
 
-  /// 获取存储的数据，并刷新到内存缓存（strict true 严谨模式下，如果读取失败抛出异常。非严谨模式下，会从本地读取）
-  Future<void> _fetchRecordFromStorage(StorageAdapter storageAdapter, String month, {bool strict : false}) async {
-    String fileName = Constants.getMonthlyRecordFileNameByMonth(month);
-    MonthlyRecord monthlyRecord;
-    // 获取数据
-    if (null == monthlyRecord) {
-      String content = '';
-      try {
-        content = await storageAdapter.read(fileName);
-      } catch (e) {
-        if (strict) rethrow;
-      }
-      if ('' != content) {
-        monthlyRecord = MonthlyRecord.fromJson(json.decode(content));
-        // 更新内存
-        _monthlyRecordMap[month] = monthlyRecord;
-        // 覆盖本地数据
-        if (storageAdapter != Runtime.fileStorageAdapter)
-          Runtime.fileStorageAdapter.write(fileName, content);
-      }
-    }
-    // 本地数据
-    if (null == monthlyRecord) await _fetchRecordFromLocal(month);
-  }
-
-  /// 从本地资源获取月度记录（先读内存，内存没有则读文件）
-  Future<void> _fetchRecordFromLocal(String month) async {
-    String fileName = Constants.getMonthlyRecordFileNameByMonth(month);
-    MonthlyRecord monthlyRecord;
-    // 内存缓存
-    if (null == monthlyRecord) monthlyRecord = _monthlyRecordMap[month];
-    // 本地数据
-    if (null == monthlyRecord) {
-      String content = await Runtime.fileStorageAdapter.read(fileName);
-      if ('' != content) monthlyRecord = MonthlyRecord.fromJson(json.decode(content));
-    }
-    // 没有获取到，创建月度记录
-    if (null == monthlyRecord) monthlyRecord = MonthlyRecord(time: DateTimeUtil.getTimestampByMonth(month));
-    // 更新内存
-    _monthlyRecordMap[month] = monthlyRecord;
-  }
-
   /// 同步修改数据到内存（从内存读取数据，变更后只修改内存）
   Future<void> _saveRecordList() async {
     // 读取待提交的数据
@@ -440,7 +399,7 @@ class HomePageState extends State<HomePage> {
     Set<String> months = {DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestamp())};
     modifiedRecordLogList.forEach((log) => months.add(DateTimeUtil.getMonthByTimestamp(log.record.time)));
     for (String month in months) {
-      await _fetchRecordFromLocal(month);
+      await Runtime.recordService.fetchRecordFromLocal(month);
     }
     // 变更应用到本地数据
     modifiedRecordLogList.forEach((log) {
@@ -464,7 +423,7 @@ class HomePageState extends State<HomePage> {
     Set<String> months = {DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestamp())};
     modifiedRecordLogList.forEach((log) => months.add(DateTimeUtil.getMonthByTimestamp(log.record.time)));
     for (String month in months) {
-      await _fetchRecordFromStorage(Runtime.storageService, month, strict: true);
+      await Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, month, strict: true);
     }
     // 变更应用到本地数据
     modifiedRecordLogList.forEach((log) {
@@ -481,8 +440,8 @@ class HomePageState extends State<HomePage> {
     // TODO 此处考虑同步过程中失败的解决方案
     for (String month in months) {
       try {
-        await Runtime.fileStorageAdapter.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(_monthlyRecordMap[month]));
-        await Runtime.storageService.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(_monthlyRecordMap[month]));
+        await Runtime.fileStorageAdapter.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(Runtime.monthlyRecordMap[month]));
+        await Runtime.storageService.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(Runtime.monthlyRecordMap[month]));
       } catch (e) {
         Fluttertoast.showToast(msg: '同步$month失败');
       }
@@ -506,7 +465,7 @@ class HomePageState extends State<HomePage> {
             LoadingDialog.runWithLoadingAsync(context, () async {
               try {
                 await _flushRecordToStorage(Runtime.storageService);
-                await _fetchRecordFromStorage(Runtime.storageService, _month, strict: true).then((_) {
+                await Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, _month, strict: true).then((_) {
                   _refreshRecordListView();
                 });
                 Fluttertoast.showToast(msg: '同步完成');

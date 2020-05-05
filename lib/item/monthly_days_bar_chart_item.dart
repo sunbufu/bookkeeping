@@ -1,4 +1,3 @@
-
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/model/daily_record.dart';
@@ -7,64 +6,60 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// 七日柱状图
-class WeeklyBarChartItem extends StatelessWidget {
-
+/// 一个月每天的柱状图
+class MonthlyDaysBarChartItem extends StatelessWidget {
   MonthlyRecord _monthlyRecord;
 
-  List<DateTime> sevenDayList = [];
+  List<DateTime> dayList = [];
 
-  List<DailyBalance> sevenDailyBalanceList = [];
+  List<DailyBalance> dailyBalanceList = [];
 
   /// 最大值
   int max = 20;
+
   /// 系数
   int factor = 20;
 
-  WeeklyBarChartItem({MonthlyRecord monthlyRecord}) {
+  MonthlyDaysBarChartItem(MonthlyRecord monthlyRecord) {
     this._monthlyRecord = monthlyRecord;
     _init();
   }
 
   void _init() {
-    _initSevenDay();
-    _initSevenDailyBalanceList();
+    _initMonthlyDay();
+    _initMonthlyDailyBalanceList();
     factor = max ~/ 20;
   }
 
-  /// 寻找本月的七天（七号之前早前七天）
-  void _initSevenDay() {
-    DateTime now = DateTime.now();
-    int day = now.day;
-    for (int i = 0; i < (day >= 7 ? 7 : day); i++) {
-      DateTime dateTime = now.subtract(Duration(days: i));
-      sevenDayList.add(dateTime);
+  /// 寻找本月的每天的日期
+  void _initMonthlyDay() {
+    DateTime date = DateTimeUtil.getDateTimeByTimestamp(_monthlyRecord.time);
+    int month = date.month;
+    while (month == date.month) {
+      dayList.add(date);
+      date = date.add(Duration(days: 1));
     }
-    for(int i = 1; i < (day >= 7 ? 0 : 7 - day + 1); i++) {
-      DateTime dateTime = now.add(Duration(days: i));
-      sevenDayList.add(dateTime);
-    }
-    sevenDayList.sort();
+    dayList.sort();
   }
 
-  /// 汇总七日数据
-  void _initSevenDailyBalanceList() {
-    for (DateTime dateTime in sevenDayList) {
+  /// 汇总每日数据
+  void _initMonthlyDailyBalanceList() {
+    for (DateTime dateTime in dayList) {
       String day = DateTimeUtil.getDayByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
       DailyRecord dailyRecord = _monthlyRecord.records[day];
       if (null == dailyRecord) {
-        sevenDailyBalanceList.add(DailyBalance(day: '${dateTime.day}'));
+        dailyBalanceList.add(DailyBalance(day: '${dateTime.day}'));
       } else {
         int expenses = 1;
         int receipts = 1;
-        dailyRecord.records.values.forEach((r){
+        dailyRecord.records.values.forEach((r) {
           if (0 == r.direction) {
             expenses += r.amount;
           } else if (1 == r.direction) {
             receipts += r.amount;
           }
         });
-        sevenDailyBalanceList.add(DailyBalance(day: '${dateTime.day}', expenses: expenses, receipts: receipts));
+        dailyBalanceList.add(DailyBalance(day: '${dateTime.day}', expenses: expenses, receipts: receipts));
         // 记录最大值
         max = expenses > max ? expenses : max;
         max = receipts > max ? receipts : max;
@@ -75,11 +70,11 @@ class WeeklyBarChartItem extends StatelessWidget {
   /// 获取柱状图组
   List<BarChartGroupData> _getGroupData() {
     List<BarChartGroupData> result = [];
-    for (int i = 0; i < sevenDailyBalanceList.length; i++) {
-      DailyBalance dailyBalance = sevenDailyBalanceList[i];
+    for (int i = 0; i < dailyBalanceList.length; i++) {
+      DailyBalance dailyBalance = dailyBalanceList[i];
       result.add(BarChartGroupData(x: i, barRods: [
-        BarChartRodData(y: dailyBalance.expenses / factor, color: Colors.deepOrange),
-        BarChartRodData(y: dailyBalance.receipts / factor, color: Colors.blue),
+        BarChartRodData(y: dailyBalance.expenses / factor, color: Colors.deepOrange, width: 3),
+        BarChartRodData(y: dailyBalance.receipts / factor, color: Colors.blue, width: 3),
       ]));
     }
     return result;
@@ -91,6 +86,7 @@ class WeeklyBarChartItem extends StatelessWidget {
       aspectRatio: 1.9,
       child: Card(
         color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
+        margin: EdgeInsets.only(left: 10, right: 10),
         elevation: 0,
         child: BarChart(
           BarChartData(
@@ -103,7 +99,8 @@ class WeeklyBarChartItem extends StatelessWidget {
                 tooltipPadding: const EdgeInsets.all(0),
                 tooltipBottomMargin: 8,
                 getTooltipItem: (BarChartGroupData group, int groupIndex, BarChartRodData rod, int rodIndex) {
-                  return BarTooltipItem(rod.y.round().toString(), TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
+                  return BarTooltipItem(
+                      rod.y.round().toString(), TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
                 },
               ),
             ),
@@ -116,7 +113,12 @@ class WeeklyBarChartItem extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 14),
                 margin: 5,
-                getTitles: (double value) => sevenDailyBalanceList[value.toInt()].day,
+                getTitles: (double value) {
+                  int index = value.toInt();
+                  if (dailyBalanceList.length <= index) return '';
+                  String day = dailyBalanceList[index].day;
+                  return (int.parse(day) - 1) % 4 == 0 ? day : '';
+                },
               ),
               leftTitles: SideTitles(showTitles: false),
             ),
@@ -132,8 +134,10 @@ class WeeklyBarChartItem extends StatelessWidget {
 /// 日度汇总
 class DailyBalance {
   String day = '';
+
   // 收入
   int receipts = 0;
+
   // 支出
   int expenses = 0;
 

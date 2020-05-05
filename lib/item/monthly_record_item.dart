@@ -1,6 +1,7 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
-import 'package:bookkeeping/item/weekly_bar_chart_item.dart';
+import 'package:bookkeeping/item/monthly_days_bar_chart_item.dart';
+import 'package:bookkeeping/item/seven_days_bar_chart_item.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,8 +19,12 @@ class MonthlyRecordItem extends StatelessWidget {
   // 支出
   int expenses = 0;
 
-  MonthlyRecordItem(MonthlyRecord _monthlyRecord) {
+  // 详情模式（展示该月每日柱状图）
+  bool _detailed = false;
+
+  MonthlyRecordItem(MonthlyRecord _monthlyRecord, {detailed: false}) {
     this._monthlyRecord = _monthlyRecord;
+    this._detailed = detailed;
     if (null != this._monthlyRecord) {
       month = null != _monthlyRecord ? DateTimeUtil.getMonthByTimestamp(_monthlyRecord.time) : '';
       _monthlyRecord.records.forEach((m, dr) {
@@ -89,10 +94,19 @@ class MonthlyRecordItem extends StatelessWidget {
           Expanded(child: _getExpenses(),),
         ],),
         Container(height: 10),
-        DateTimeUtil.isCurrentMonth(_monthlyRecord.time)
-            ? WeeklyBarChartItem(monthlyRecord: _monthlyRecord)
-            : Container(),
+        _getBarChart(),
       ]),
     );
+  }
+
+  /// 柱状图
+  Widget _getBarChart() {
+    if (_detailed) {
+      return MonthlyDaysBarChartItem(_monthlyRecord);
+    }
+    if (DateTimeUtil.isCurrentMonth(_monthlyRecord.time)) {
+      return SevenDaysBarChartItem(monthlyRecord: _monthlyRecord);
+    }
+    return Container();
   }
 }

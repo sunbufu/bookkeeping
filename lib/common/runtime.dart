@@ -1,6 +1,7 @@
 import 'package:bookkeeping/model/user.dart';
 import 'package:bookkeeping/service/category_service.dart';
 import 'package:bookkeeping/service/frequently_mark_service.dart';
+import 'package:bookkeeping/service/record_service.dart';
 import 'package:bookkeeping/service/storage_service.dart';
 import 'package:bookkeeping/storage/file_storage_adapter.dart';
 
@@ -44,4 +45,10 @@ class Runtime {
 
   /// 详情页面有没有展示
   static bool detailPageShowing = false;
+
+  /// 记录服务
+  static RecordService recordService = RecordService();
+
+  /// 月度记录
+  static get monthlyRecordMap => recordService.monthlyRecordMap;
 }
