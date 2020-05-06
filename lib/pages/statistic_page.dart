@@ -269,7 +269,8 @@ class StatisticPageState extends State<StatisticPage> {
     List<Record> categoryRecordList = categoryRecordMap[pieChartItemData.title];
     showModalBottomSheet(context: context, builder: (context) {
       return Container(height: (100 + 60 * categoryRecordList.length).toDouble(),
-          child: SingleChildScrollView(padding: EdgeInsets.all(0),child: Column(children: _getCategoryItemDetailList(pieChartItemData))));
+          child: SingleChildScrollView(padding: EdgeInsets.all(0), child: Column(children: _getCategoryItemDetailList(pieChartItemData))),
+      );
     });
   }
 
@@ -279,16 +280,17 @@ class StatisticPageState extends State<StatisticPage> {
     Map<String, int> categoryAmountMap = 0 == direction ? expensesCategoryAmountMap : receiptsCategoryAmountMap;
     Map<String, List<Record>> categoryRecordMap = 0 == direction ? expensesCategoryRecordMap : receiptsCategoryRecordMap;
     List<Record> categoryRecordList = categoryRecordMap[pieChartItemData.title];
+    categoryRecordList.sort((a, b) => b.time - a.time);
     result.add(Container(
       padding: EdgeInsets.all(20),
       child: Row(
         children: <Widget>[
-          Text('${pieChartItemData.title} (${categoryRecordList.length}条)', style: TextStyle(fontSize: 15)),
+          Text('${pieChartItemData.title} (${categoryRecordList.length}条)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           Expanded(
             child: Text(
                 '${0 == direction ? '-' : '+'}${(categoryAmountMap[pieChartItemData.title] / 100).toStringAsFixed(2)}',
                 textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 15, color: _getAmountColor())),
+                style: TextStyle(fontSize: 15, color: _getAmountColor(), fontWeight: FontWeight.bold)),
           )
         ],
       ),
@@ -297,6 +299,7 @@ class StatisticPageState extends State<StatisticPage> {
       String title =
           '${record.createdUser.isEmpty ? '' : '创建人:' + record.createdUser + ' '}${record.remark.isEmpty ? '' : '备注:' + record.remark}';
       result.add(FlatButton(
+        padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
         onPressed: (){},
         child: Row(
           children: <Widget>[
