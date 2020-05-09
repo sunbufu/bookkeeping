@@ -60,6 +60,8 @@ class HomePageState extends State<HomePage> {
     _initMenuItem();
     // 初始化 quick action
     _initQuickAction();
+    // 添加恢复监听器
+    Runtime.resumedListenerList.add(_resumedListener);
     // 添加暂停监听器
     Runtime.pausedListenerList.add(_pausedListener);
 
@@ -68,6 +70,8 @@ class HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    // 移除恢复监听器
+    Runtime.resumedListenerList.remove(_resumedListener);
     // 移除暂停监听器
     Runtime.pausedListenerList.remove(_pausedListener);
     super.dispose();
@@ -136,8 +140,18 @@ class HomePageState extends State<HomePage> {
   void _initMenuItem() {
     // 准备 menu 数据
     _menuItemList = [
-      MenuItem('统计分析', () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => ProgressHUD(child: StatisticPage(_month))));
+      MenuItem('手动同步', () {
+        LoadingDialog.runWithLoadingAsync(context, () async {
+          try {
+            await _flushRecordToStorage(Runtime.storageService);
+            await Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, _month, strict: true).then((_) {
+              _refreshRecordListView();
+            });
+            Fluttertoast.showToast(msg: '同步完成');
+          } catch (e) {
+            Fluttertoast.showToast(msg: 'webdav连接失败');
+          }
+        });
       }),
       MenuItem('设置账号', () =>
           WebDavLoginDialog().show(context, Runtime.user, (user) {
@@ -203,6 +217,14 @@ class HomePageState extends State<HomePage> {
             Fluttertoast.showToast(msg: '导入成功');
           });
     });
+  }
+
+  /// 恢复监听器
+  void _resumedListener() {
+    if(20 < DateTimeUtil.getTimestamp() - Runtime.recordService.lastFetchTime)
+      Runtime.recordService
+          .fetchRecordFromStorage(Runtime.storageService, _month)
+          .then((_) => _refreshRecordListView());
   }
 
   /// 暂停监听器
@@ -461,18 +483,8 @@ class HomePageState extends State<HomePage> {
         ),
         centerTitle: true,
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.sync), onPressed: () async {
-            LoadingDialog.runWithLoadingAsync(context, () async {
-              try {
-                await _flushRecordToStorage(Runtime.storageService);
-                await Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, _month, strict: true).then((_) {
-                  _refreshRecordListView();
-                });
-                Fluttertoast.showToast(msg: '同步完成');
-              } catch (e) {
-                Fluttertoast.showToast(msg: 'webdav连接失败');
-              }
-            });
+          IconButton(icon: Icon(Icons.equalizer), onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ProgressHUD(child: StatisticPage(_month))));
           }),
           PopupMenuButton<MenuItem>(
             onSelected: (menuItem) => menuItem.onSelected(),

@@ -9,6 +9,8 @@ import 'package:bookkeeping/storage/storage_adapter.dart';
 /// 记录服务
 class RecordService {
 
+  int lastFetchTime = 0;
+
   /// 月度记录
   Map<String, MonthlyRecord> monthlyRecordMap = {};
 
@@ -33,6 +35,7 @@ class RecordService {
           Runtime.fileStorageAdapter.write(fileName, content);
       }
     }
+    lastFetchTime = DateTimeUtil.getTimestamp();
     // 本地数据
     if (null == monthlyRecord) await fetchRecordFromLocal(month);
   }
