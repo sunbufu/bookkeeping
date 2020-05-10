@@ -79,13 +79,13 @@ class HomePageState extends State<HomePage> {
 
   /// 异步初始化
   void _init() async {
-    await _refreshDataFromStorage(Runtime.fileStorageAdapter);
+    await _refreshDataFromStorage(Runtime.sharedPreferencesStorageAdapter);
     // 初始化用户配置
-    await _initUserProperties(Runtime.fileStorageAdapter);
+    await _initUserProperties(Runtime.sharedPreferencesStorageAdapter);
     // 设置列表回调
     _initRecordListCallBack();
     // 抓取常用备注数据
-    Runtime.frequentlyMarkService.fetchFrequentlyMarkList(Runtime.fileStorageAdapter);
+    Runtime.frequentlyMarkService.fetchFrequentlyMarkList(Runtime.sharedPreferencesStorageAdapter);
   }
 
   /// 设置完成用户配置后，刷新存储数据
