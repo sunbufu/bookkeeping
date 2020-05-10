@@ -19,7 +19,7 @@ class CategoryService {
     _categoryTabList = categoryTabList;
     // 保存数据到存储
     String content = json.encode(_categoryTabList);
-    Runtime.fileStorageAdapter.write(Constants.CATEGORY_FILE_NAME, content);
+    Runtime.sharedPreferencesStorageAdapter.write(Constants.CATEGORY_FILE_NAME, content);
     if (Runtime.storageService.isReady) {
       Runtime.storageService.write(Constants.CATEGORY_FILE_NAME, content);
     } else {
@@ -34,7 +34,7 @@ class CategoryService {
       _categoryTabList = List<CategoryTab>.from(json.decode(content).map((e) => CategoryTab.fromJson(e)));
     }
     // 保存数据到本地文件存储
-    if (storageAdapter != Runtime.fileStorageAdapter)
-      Runtime.fileStorageAdapter.write(Constants.CATEGORY_FILE_NAME, json.encode(_categoryTabList));
+    if (storageAdapter != Runtime.sharedPreferencesStorageAdapter)
+      Runtime.sharedPreferencesStorageAdapter.write(Constants.CATEGORY_FILE_NAME, json.encode(_categoryTabList));
   }
 }

@@ -35,7 +35,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
   void _copyCategoryTab() async {
     tabs = List<CategoryCheckedTab>();
     if (null == Runtime.categoryService.categoryTabList) {
-      await Runtime.categoryService.fetchCategoryFromStorage(Runtime.fileStorageAdapter);
+      await Runtime.categoryService.fetchCategoryFromStorage(Runtime.sharedPreferencesStorageAdapter);
     }
     for (CategoryTab categoryTab in Runtime.categoryService.categoryTabList) {
       List<CheckedEntry<Category>> list =

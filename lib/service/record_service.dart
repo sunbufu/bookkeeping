@@ -31,8 +31,8 @@ class RecordService {
         // 更新内存
         monthlyRecordMap[month] = monthlyRecord;
         // 覆盖本地数据
-        if (storageAdapter != Runtime.fileStorageAdapter)
-          Runtime.fileStorageAdapter.write(fileName, content);
+        if (storageAdapter != Runtime.sharedPreferencesStorageAdapter)
+          Runtime.sharedPreferencesStorageAdapter.write(fileName, content);
       }
     }
     lastFetchTime = DateTimeUtil.getTimestamp();
@@ -48,7 +48,7 @@ class RecordService {
     if (null == monthlyRecord) monthlyRecord = monthlyRecordMap[month];
     // 本地数据
     if (null == monthlyRecord) {
-      String content = await Runtime.fileStorageAdapter.read(fileName);
+      String content = await Runtime.sharedPreferencesStorageAdapter.read(fileName);
       if ('' != content) monthlyRecord = MonthlyRecord.fromJson(json.decode(content));
     }
     // 没有获取到，创建月度记录

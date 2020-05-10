@@ -11,7 +11,7 @@ description: A bookkeeping Flutter application.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.13+11
+version: 1.0.14+12
 
 environment:
   sdk: ">=2.2.0 <3.0.0"
@@ -34,6 +34,7 @@ dependencies:
   quick_actions: ^0.4.0+4
   fl_chart: ^0.9.4
   intl: ^0.16.1
+  shared_preferences: ^0.5.7+1
 
 dev_dependencies:
   flutter_test:

@@ -112,14 +112,24 @@ class HomePageState extends State<HomePage> {
   
   /// 初始化用户配置
   Future<void> _initUserProperties(StorageAdapter storageAdapter) async {
-    if (await Runtime.fileStorageAdapter.exist(Constants.USER_INFO_FILE_NAME)) {
-      User user = User.fromJson(json.decode(await Runtime.fileStorageAdapter.read(Constants.USER_INFO_FILE_NAME)));
+    if (await Runtime.sharedPreferencesStorageAdapter.exist(Constants.USER_INFO_FILE_NAME) || await Runtime.fileStorageAdapter.exist(Constants.USER_INFO_FILE_NAME)) {
+      String userContent = await Runtime.sharedPreferencesStorageAdapter.read(Constants.USER_INFO_FILE_NAME);
+      // 兼容之前的文件存储
+      if (userContent.isEmpty) {
+        userContent = await Runtime.fileStorageAdapter.read(Constants.USER_INFO_FILE_NAME);
+        Runtime.sharedPreferencesStorageAdapter
+            .write(Constants.USER_INFO_FILE_NAME, userContent)
+            .then((result) {
+              if (result) Runtime.fileStorageAdapter.delete(Constants.USER_INFO_FILE_NAME);
+            });
+      }
+      User user = User.fromJson(json.decode(userContent));
       Runtime.user = user;
       await _afterSetUser();
     } else {
       WebDavLoginDialog().show(context, null, (user) {
         Runtime.user = user;
-        Runtime.fileStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
+        Runtime.sharedPreferencesStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
         _afterSetUser();
       });
     }
@@ -156,11 +166,11 @@ class HomePageState extends State<HomePage> {
       MenuItem('设置账号', () =>
           WebDavLoginDialog().show(context, Runtime.user, (user) {
             Runtime.user = user;
-            Runtime.fileStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
+            Runtime.sharedPreferencesStorageAdapter.write(Constants.USER_INFO_FILE_NAME, json.encode(user));
             _afterSetUser();
           })),
       MenuItem('清除缓存', () {
-        Runtime.fileStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
+        Runtime.sharedPreferencesStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
         Fluttertoast.showToast(msg: '清除成功');
       }),
       MenuItem('数据导入', () {
@@ -399,12 +409,12 @@ class HomePageState extends State<HomePage> {
     if (null == recordList || recordList.isEmpty) return;
     List<ModifiedRecordLog> modifiedRecordLogList = await _getModifiedRecordLogList();
     modifiedRecordLogList.addAll(recordList);
-    await Runtime.fileStorageAdapter.write(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME, json.encode(modifiedRecordLogList));
+    await Runtime.sharedPreferencesStorageAdapter.write(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME, json.encode(modifiedRecordLogList));
   }
 
   /// 从本地存储获取待提交的修改记录
   Future<List<ModifiedRecordLog>> _getModifiedRecordLogList() async {
-    String content = await Runtime.fileStorageAdapter.read(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
+    String content = await Runtime.sharedPreferencesStorageAdapter.read(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
     if ('' == content) return List<ModifiedRecordLog>();
     return List.from(json.decode(content).map((e) => ModifiedRecordLog.fromJson(e)));
   }
@@ -462,12 +472,12 @@ class HomePageState extends State<HomePage> {
     // TODO 此处考虑同步过程中失败的解决方案
     for (String month in months) {
       try {
-        await Runtime.fileStorageAdapter.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(Runtime.monthlyRecordMap[month]));
+        await Runtime.sharedPreferencesStorageAdapter.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(Runtime.monthlyRecordMap[month]));
         await Runtime.storageService.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(Runtime.monthlyRecordMap[month]));
       } catch (e) {
         Fluttertoast.showToast(msg: '同步$month失败');
       }
-      Runtime.fileStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
+      Runtime.sharedPreferencesStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
     }
   }
 

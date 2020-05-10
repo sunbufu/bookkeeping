@@ -25,6 +25,6 @@ class FrequentlyMarkService {
     _frequentlyMarkList.insert(0, mark);
     while (_frequentlyMarkList.length > 16) _frequentlyMarkList.removeLast();
     // 保存到本地
-    Runtime.fileStorageAdapter.write(Constants.FREQUENTLY_MARK_FILE_NAME, json.encode(_frequentlyMarkList));
+    Runtime.sharedPreferencesStorageAdapter.write(Constants.FREQUENTLY_MARK_FILE_NAME, json.encode(_frequentlyMarkList));
   }
 }

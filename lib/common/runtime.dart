@@ -4,6 +4,7 @@ import 'package:bookkeeping/service/frequently_mark_service.dart';
 import 'package:bookkeeping/service/record_service.dart';
 import 'package:bookkeeping/service/storage_service.dart';
 import 'package:bookkeeping/storage/file_storage_adapter.dart';
+import 'package:bookkeeping/storage/shared_preferences_storage_adapter.dart';
 
 /// 运行时信息
 class Runtime {
@@ -18,9 +19,13 @@ class Runtime {
   /// 本地存储（存储用户本地配置）
   static FileStorageAdapter _fileStorageAdapter = FileStorageAdapter();
 
-  static set fileStorageAdapter(fileStorageAdapter) => _fileStorageAdapter = fileStorageAdapter;
-
+  @deprecated
   static get fileStorageAdapter => _fileStorageAdapter;
+
+  /// SharedPreferences 存储适配器
+  static SharedPreferencesStorageAdapter _sharedPreferencesStorageAdapter = SharedPreferencesStorageAdapter();
+
+  static get sharedPreferencesStorageAdapter => _sharedPreferencesStorageAdapter;
 
   /// 存储适配器
   static StorageService storageService = StorageService();
