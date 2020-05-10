@@ -1,19 +1,27 @@
+import 'dart:io';
+
 import 'package:bookkeeping/common/runtime.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 
 import 'pages/home_page.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+
+  if (Platform.isAndroid) {
+    // 设置沉浸状态栏
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+  }
+}
 
 class MyApp extends StatefulWidget {
-
   @override
   State createState() => MyAppState();
 }
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();

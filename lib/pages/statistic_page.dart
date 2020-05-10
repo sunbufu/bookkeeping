@@ -161,11 +161,12 @@ class StatisticPageState extends State<StatisticPage> {
                 children: <Widget>[
                   Text('分类统计'),
                   PieChart(PieChartData(
-                      pieTouchData: PieTouchData(touchCallback: (pieTouchResponse) {
-                        pieChartTouchedIndex = pieTouchResponse.touchInput is FlLongPressEnd || pieTouchResponse.touchInput is FlPanEnd
-                            ? -1
-                            : pieTouchResponse.touchedSectionIndex;
-                        setState(() {});
+                      pieTouchData: PieTouchData(touchCallback: (touch) {
+                        if (touch.touchInput is FlPanStart || touch.touchInput is FlLongPressMoveUpdate) {
+                          int newIndex = touch.touchedSectionIndex ?? -1;
+                          if(pieChartTouchedIndex != newIndex)
+                            setState(() => pieChartTouchedIndex = newIndex);
+                        }
                       }),
                       borderData: FlBorderData(show: false),
                       sectionsSpace: 0,
