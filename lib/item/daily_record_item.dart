@@ -1,6 +1,7 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/model/daily_record.dart';
+import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/record.dart';
 import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
@@ -99,7 +100,7 @@ class DailyRecordItem extends StatelessWidget {
     int expenses = 0;
     int receipts = 0;
     for (Record record in _dailyRecord.records.values) {
-      if (0 == record.direction)
+      if (Directions.EXPENSE == record.direction)
         expenses += record.amount;
       else
         receipts += record.amount;
@@ -109,7 +110,7 @@ class DailyRecordItem extends StatelessWidget {
         (expenses / 100).toStringAsFixed(2);
   }
 
-  Color _getColor(Record record) => 0 == record.direction ? Colors.deepOrange : Colors.blue;
+  Color _getColor(Record record) => Directions.EXPENSE == record.direction ? Colors.deepOrange : Colors.blue;
 
-  String _getAmount(Record record) => (0 == record.direction ? '-' : '+') + (record.amount / 100).toStringAsFixed(2);
+  String _getAmount(Record record) => (Directions.EXPENSE == record.direction ? '-' : '+') + (record.amount / 100).toStringAsFixed(2);
 }

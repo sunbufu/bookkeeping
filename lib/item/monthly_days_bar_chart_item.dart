@@ -1,6 +1,7 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/model/daily_record.dart';
+import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
@@ -53,7 +54,7 @@ class MonthlyDaysBarChartItem extends StatelessWidget {
         int expenses = 1;
         int receipts = 1;
         dailyRecord.records.values.forEach((r) {
-          if (0 == r.direction) {
+          if (Directions.EXPENSE == r.direction) {
             expenses += r.amount;
           } else if (1 == r.direction) {
             receipts += r.amount;

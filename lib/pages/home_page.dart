@@ -12,6 +12,7 @@ import 'package:bookkeeping/dialog/web_dav_login_dialog.dart';
 import 'package:bookkeeping/item/menu_item.dart';
 import 'package:bookkeeping/list/daily_record_list.dart';
 import 'package:bookkeeping/model/daily_record.dart';
+import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/modified_record_log.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:bookkeeping/model/record.dart';
@@ -279,7 +280,7 @@ class HomePageState extends State<HomePage> {
         ',' +
         record.category +
         ',' +
-        (record.direction == 0 ? '支出' : '收入') +
+        (record.direction == Directions.EXPENSE ? '支出' : '收入') +
         ',' +
         (record.amount / 100).toStringAsFixed(2) +
         ',' +

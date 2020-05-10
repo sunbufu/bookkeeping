@@ -40,3 +40,4 @@ lib/generated_plugin_registrant.dart
 /android/app/*.keystore
 /android/key.properties
 /android/settings_aar.gradle
+/.gradle/

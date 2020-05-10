@@ -2,6 +2,7 @@ import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/item/monthly_days_bar_chart_item.dart';
 import 'package:bookkeeping/item/seven_days_bar_chart_item.dart';
+import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,7 +30,7 @@ class MonthlyRecordItem extends StatelessWidget {
       month = null != _monthlyRecord ? DateTimeUtil.getMonthByTimestamp(_monthlyRecord.time) : '';
       _monthlyRecord.records.forEach((m, dr) {
         dr.records.forEach((id, r) {
-          if (0 == r.direction) {
+          if (Directions.EXPENSE == r.direction) {
             balance -= r.amount;
             expenses += r.amount;
           } else if (1 == r.direction) {

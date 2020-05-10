@@ -5,6 +5,7 @@ import 'package:bookkeeping/dialog/loading_dialog.dart';
 import 'package:bookkeeping/dialog/month_picker_dialog.dart';
 import 'package:bookkeeping/item/monthly_record_item.dart';
 import 'package:bookkeeping/model/daily_record.dart';
+import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:bookkeeping/model/record.dart';
 import 'package:decimal/decimal.dart';
@@ -148,46 +149,55 @@ class StatisticPageState extends State<StatisticPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // 月度汇总
             MonthlyRecordItem(Runtime.monthlyRecordMap[widget.month], detailed: true),
-            Container(
-              alignment: Alignment.center,
-              margin: EdgeInsets.fromLTRB(10, 15, 10, 0),
-              padding: EdgeInsets.only(top: 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(6.0)),
-                color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
-              ),
-              child: Column(
-                children: <Widget>[
-                  Text('分类统计'),
-                  PieChart(PieChartData(
-                      pieTouchData: PieTouchData(touchCallback: (touch) {
-                        if (touch.touchInput is FlPanStart || touch.touchInput is FlLongPressMoveUpdate) {
-                          int newIndex = touch.touchedSectionIndex ?? -1;
-                          if(pieChartTouchedIndex != newIndex)
-                            setState(() => pieChartTouchedIndex = newIndex);
-                        }
-                      }),
-                      borderData: FlBorderData(show: false),
-                      sectionsSpace: 0,
-                      centerSpaceRadius: 0,
-                      sections: 0 == direction
-                          ? generatePieChartSectionDataList(expensesPieChartItemDataList)
-                          : generatePieChartSectionDataList(receiptsPieChartItemDataList))),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                    Text('收入'),
-                    Switch(value: direction == 0, onChanged: (value) => setState(() => direction = value ? 0 : 1)),
-                    Text('支出'),
-                  ]),
-                  Column(children: _getCategoryItemList(),),
-                  Container(margin: EdgeInsets.only(bottom: 30)),
-                ],
-              )
-            )
+            // 分类汇总
+            buildPieChart()
           ],
         ),
       )
     );
+  }
+
+  /// 分类统计模块
+  Widget buildPieChart() {
+    return Container(
+            alignment: Alignment.center,
+            margin: EdgeInsets.fromLTRB(10, 15, 10, 0),
+            padding: EdgeInsets.only(top: 15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(6.0)),
+              color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
+            ),
+            child: Column(
+              children: <Widget>[
+                Text('分类统计'),
+                PieChart(PieChartData(
+                    pieTouchData: PieTouchData(touchCallback: (touch) {
+                      if (touch.touchInput is FlPanStart || touch.touchInput is FlLongPressMoveUpdate) {
+                        int newIndex = touch.touchedSectionIndex ?? -1;
+                        if(pieChartTouchedIndex != newIndex)
+                          setState(() => pieChartTouchedIndex = newIndex);
+                      }
+                    }),
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 0,
+                    centerSpaceRadius: 0,
+                    sections: Directions.EXPENSE == direction
+                        ? generatePieChartSectionDataList(expensesPieChartItemDataList)
+                        : generatePieChartSectionDataList(receiptsPieChartItemDataList))),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+                  Text('收入'),
+                  Switch(value: direction == Directions.EXPENSE, onChanged: (v) {
+                    direction = (v ? Directions.EXPENSE : Directions.RECEIPTS);
+                    setState((){});
+                  }),
+                  Text('支出'),
+                ]),
+                Column(children: _getCategoryItemList(),),
+              ],
+            )
+          );
   }
 
   /// 饼图颜色
@@ -228,7 +238,7 @@ class StatisticPageState extends State<StatisticPage> {
   List<Widget> _getCategoryItemList() {
     List<Widget> result = [];
     List<PieChartItemData> pieChartItemDataList =
-        0 == direction ? expensesPieChartItemDataList : receiptsPieChartItemDataList;
+        Directions.EXPENSE == direction ? expensesPieChartItemDataList : receiptsPieChartItemDataList;
     for (PieChartItemData pieChartItemData in pieChartItemDataList) {
       result.add(_getCategoryItem(pieChartItemData));
     }
@@ -249,7 +259,7 @@ class StatisticPageState extends State<StatisticPage> {
               Text(pieChartItemData.title),
               Text('${(pieChartItemData.percentage * Decimal.fromInt(100)).toStringAsFixed(2)}%'),
             ]),
-            Expanded(child: Text(0 == direction
+            Expanded(child: Text(Directions.EXPENSE == direction
                 ? '-${(expensesCategoryAmountMap[pieChartItemData.title] / 100).toStringAsFixed(2)}'
                 : '+${(receiptsCategoryAmountMap[pieChartItemData.title] / 100).toStringAsFixed(2)}',
               style: TextStyle(color: _getAmountColor()),
@@ -261,12 +271,11 @@ class StatisticPageState extends State<StatisticPage> {
     );
   }
 
-  Color _getAmountColor() => 0 == direction ? Colors.deepOrange : Colors.blue;
+  Color _getAmountColor() => Directions.EXPENSE == direction ? Colors.deepOrange : Colors.blue;
 
   /// 展示分类弹出框
   void _showCategoryItemDetail(PieChartItemData pieChartItemData) {
-    Map<String, int> categoryAmountMap = 0 == direction ? expensesCategoryAmountMap : receiptsCategoryAmountMap;
-    Map<String, List<Record>> categoryRecordMap = 0 == direction ? expensesCategoryRecordMap : receiptsCategoryRecordMap;
+    Map<String, List<Record>> categoryRecordMap = Directions.EXPENSE == direction ? expensesCategoryRecordMap : receiptsCategoryRecordMap;
     List<Record> categoryRecordList = categoryRecordMap[pieChartItemData.title];
     showModalBottomSheet(context: context, builder: (context) {
       return Container(height: (100 + 60 * categoryRecordList.length).toDouble(),
@@ -278,8 +287,8 @@ class StatisticPageState extends State<StatisticPage> {
   /// 分类弹出框详情列表
   List<Widget> _getCategoryItemDetailList(PieChartItemData pieChartItemData) {
     List<Widget> result = [];
-    Map<String, int> categoryAmountMap = 0 == direction ? expensesCategoryAmountMap : receiptsCategoryAmountMap;
-    Map<String, List<Record>> categoryRecordMap = 0 == direction ? expensesCategoryRecordMap : receiptsCategoryRecordMap;
+    Map<String, int> categoryAmountMap = Directions.EXPENSE == direction ? expensesCategoryAmountMap : receiptsCategoryAmountMap;
+    Map<String, List<Record>> categoryRecordMap = Directions.EXPENSE == direction ? expensesCategoryRecordMap : receiptsCategoryRecordMap;
     List<Record> categoryRecordList = categoryRecordMap[pieChartItemData.title];
     categoryRecordList.sort((a, b) => b.time - a.time);
     result.add(Container(
@@ -289,7 +298,7 @@ class StatisticPageState extends State<StatisticPage> {
           Text('${pieChartItemData.title} (${categoryRecordList.length}条)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           Expanded(
             child: Text(
-                '${0 == direction ? '-' : '+'}${(categoryAmountMap[pieChartItemData.title] / 100).toStringAsFixed(2)}',
+                '${Directions.EXPENSE == direction ? '-' : '+'}${(categoryAmountMap[pieChartItemData.title] / 100).toStringAsFixed(2)}',
                 textAlign: TextAlign.right,
                 style: TextStyle(fontSize: 15, color: _getAmountColor(), fontWeight: FontWeight.bold)),
           )
@@ -299,9 +308,8 @@ class StatisticPageState extends State<StatisticPage> {
     categoryRecordList.forEach((record) {
       String title =
           '${record.createdUser.isEmpty ? '' : '创建人:' + record.createdUser + ' '}${record.remark.isEmpty ? '' : '备注:' + record.remark}';
-      result.add(FlatButton(
+      result.add(Container(
         padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-        onPressed: (){},
         child: Row(
           children: <Widget>[
             Container(margin: EdgeInsets.only(right: 10), child: Icon(Icons.fiber_manual_record, color: _getAmountColor(), size: 10),),
@@ -310,7 +318,7 @@ class StatisticPageState extends State<StatisticPage> {
               title.isEmpty ? Container() : Text(title, style: TextStyle(fontSize: 12)),
             ]),
             Expanded(child: Text(
-                '${0 == direction ? '-' : '+'}${(record.amount / 100).toStringAsFixed(2)}',
+                '${Directions.EXPENSE == direction ? '-' : '+'}${(record.amount / 100).toStringAsFixed(2)}',
                 textAlign: TextAlign.right,
                 style: TextStyle(fontSize: 15, color: _getAmountColor())),
             )
