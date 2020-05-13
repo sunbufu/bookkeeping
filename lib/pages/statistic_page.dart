@@ -64,11 +64,10 @@ class StatisticPageState extends State<StatisticPage> {
       LoadingDialog.show(context);
       widget.month = DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
       Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, widget.month).then((_) {
-        LoadingDialog.dismiss();
         widget.monthlyRecord = Runtime.monthlyRecordMap[widget.month];
         _initData();
         setState(() {});
-      });
+      }).whenComplete(() => LoadingDialog.dismiss());
     });
   }
 

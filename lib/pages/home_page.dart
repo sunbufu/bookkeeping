@@ -27,6 +27,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:quiver/strings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
@@ -319,7 +320,7 @@ class HomePageState extends State<HomePage> {
           _saveRecordAndRefresh();
         });
       } else if (action.oldEntry != action.newEntry) {
-        action.newEntry.createdUser = Runtime.username;
+        if (isBlank(action.newEntry.createdUser)) action.newEntry.createdUser = Runtime.username;
         _addModifiedRecordLog([
           ModifiedRecordLog(record: action.oldEntry, operation: 0),
           ModifiedRecordLog(record: action.newEntry, operation: 1)
@@ -365,7 +366,7 @@ class HomePageState extends State<HomePage> {
   void gotoDetailPageAndCreateRecord() async {
     gotoDetailPage(callback: (action) {
       if (null == action.newEntry || 0 >= action.newEntry.amount) return;
-      action.newEntry.createdUser = Runtime.username;
+      if (isBlank(action.newEntry.createdUser)) action.newEntry.createdUser = Runtime.username;
       _addModifiedRecordLog([ModifiedRecordLog(record: action.newEntry, operation: 1)]).then((_) {
         _saveRecordAndRefresh();
       });
