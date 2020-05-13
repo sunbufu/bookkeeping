@@ -93,7 +93,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
                     child: Row(children: <Widget>[
                       CircleAvatar(
                         child: Text(category.name.substring(0, 1)),
-                        backgroundColor: Colors.grey,
+                        backgroundColor: Colors.blueAccent,
                         foregroundColor: Colors.white,
                       ),
                       Container(width: 10),

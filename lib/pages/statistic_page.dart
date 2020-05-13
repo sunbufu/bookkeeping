@@ -253,7 +253,10 @@ class StatisticPageState extends State<StatisticPage> {
         padding: EdgeInsets.fromLTRB(5, 10, 5, 10),
         child: Row(
           children: <Widget>[
-            CircleAvatar(child: Text(pieChartItemData.title.substring(0, 1)), foregroundColor: Colors.white),
+            CircleAvatar(
+                child: Text(pieChartItemData.title.substring(0, 1)),
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.blueAccent),
             Container(padding: EdgeInsets.only(left: 15)),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
               Text(pieChartItemData.title),
