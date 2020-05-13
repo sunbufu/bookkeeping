@@ -241,6 +241,7 @@ class StatisticPageState extends State<StatisticPage> {
     for (PieChartItemData pieChartItemData in pieChartItemDataList) {
       result.add(_getCategoryItem(pieChartItemData));
     }
+    result.add(Container(padding: EdgeInsets.only(bottom: 26),));
     return result;
   }
 
