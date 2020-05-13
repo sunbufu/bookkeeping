@@ -78,7 +78,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
       children: categoryTab.list.map((category) {
         return Container(
           key: ObjectKey(category),
-          margin: EdgeInsets.fromLTRB(10, 5, 10, 5),
+          margin: EdgeInsets.only(bottom: 1),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(6.0)),
             color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
