@@ -37,7 +37,7 @@ class DateTimeUtil {
   }
 
   static int getTimestampByFormat(String str, String format) {
-    DateTime dateTime = null;
+    DateTime dateTime;
     try {
       dateTime = DateFormat(format).parse(str);
     } catch (e) {}

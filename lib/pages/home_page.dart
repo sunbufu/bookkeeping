@@ -380,7 +380,7 @@ class HomePageState extends State<HomePage> {
         _refreshRecordListView();
       });
     });
-    if (Runtime.syncEveryModify || flush) {
+    if (Runtime.syncWhenModify || flush) {
       LoadingDialog.runWithLoadingAsync(context, () async {
         await _flushRecordToStorage(Runtime.storageService);
         _refreshRecordListView();

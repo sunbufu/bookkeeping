@@ -14,7 +14,7 @@ class Runtime {
   static get username => null != user ? user.username : '';
 
   /// 是否每次修改都同步
-  static bool syncEveryModify = false;
+  static bool syncWhenModify = false;
 
   /// 本地存储（存储用户本地配置）
   static FileStorageAdapter _fileStorageAdapter = FileStorageAdapter();
