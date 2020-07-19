@@ -87,7 +87,7 @@ class HomePageState extends State<HomePage> {
     // 设置列表回调
     _initRecordListCallBack();
     // 抓取常用备注数据
-    Runtime.frequentlyMarkService.fetchFrequentlyMarkList(Runtime.sharedPreferencesStorageAdapter);
+    Runtime.frequentlyMarkService.fetchFrequentlyMarkMap(Runtime.sharedPreferencesStorageAdapter);
   }
 
   /// 设置完成用户配置后，刷新存储数据

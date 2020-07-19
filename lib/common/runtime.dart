@@ -43,10 +43,10 @@ class Runtime {
   static FrequentlyMarkService frequentlyMarkService = FrequentlyMarkService();
 
   /// 常用备注列表
-  static get frequentlyMarkList => frequentlyMarkService.frequentlyMarkList;
+  static List<String> getFrequentlyMarkList(String category) => frequentlyMarkService.getFrequentlyMarkList(category);
 
   /// 添加常用备注
-  static void addFrequentlyMark(String mark) => frequentlyMarkService.addFrequentlyMark(mark);
+  static void putFrequentlyMark(String category, String mark) => frequentlyMarkService.putFrequentlyMark(category, mark);
 
   /// 详情页面有没有展示
   static bool detailPageShowing = false;

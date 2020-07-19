@@ -12,7 +12,6 @@ import 'package:bookkeeping/pages/category_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class DetailPage extends StatefulWidget {
   final Record record;
@@ -128,12 +127,8 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
                 dateTime: null != widget.record ? DateTimeUtil.getDateTimeByTimestamp(widget.record.time) : null,
                 remark: null != widget.record ? widget.record.remark : '',
                 creator: null != widget.record ? widget.record.createdUser : Runtime.user.username,
-                callback: (value, dateTime, remark, createdUser) {
-                  Category category = _getCheckedCategory();
-                  if (null == category) {
-                    Fluttertoast.showToast(msg: '请选择分类');
-                    return;
-                  }
+                getCategory: _getCheckedCategory,
+                callback: (value, dateTime, remark, createdUser, category) {
                   Record newRecord;
                   if (null == widget.record)
                     newRecord = Record(amount: value);
@@ -153,6 +148,7 @@ class DetailPageState extends State<DetailPage> with SingleTickerProviderStateMi
     );
   }
 
+  /// 获取选中的分类
   Category _getCheckedCategory() {
     Category result;
     tabs.forEach((tab) => tab.list.forEach((each) {

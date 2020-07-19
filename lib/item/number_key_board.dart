@@ -1,6 +1,7 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/common/runtime.dart';
+import 'package:bookkeeping/model/category.dart';
 import 'package:date_format/date_format.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,13 +16,15 @@ class NumberKeyBoard extends StatefulWidget {
   final DateTime _dateTime;
   final String _remark;
   final String _creator;
-  final Function(int, DateTime, String, String) _callback;
+  final Function(int, DateTime, String, String, Category) _callback;
+  final Category Function() _getCategory;
 
-  NumberKeyBoard({int amount, DateTime dateTime, String remark, String creator, Function(int, DateTime, String, String) callback})
+  NumberKeyBoard({int amount, DateTime dateTime, String remark, String creator, Category Function() getCategory, Function(int, DateTime, String, String, Category) callback})
       : this._amount = amount,
         this._dateTime = dateTime ?? DateTime.now(),
         this._remark = remark,
         this._creator = creator ?? '',
+        this._getCategory = getCategory,
         this._callback = callback;
   
   @override
@@ -46,9 +49,6 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   TextEditingController _remarkController;
 
   TextEditingController _creatorController;
-
-  /// 备注弹框内容
-  List<Widget> _markDialogRow;
 
   NumberKeyBoardState(int amount, DateTime dateTime, String remark, String creator) {
     _valueStr = (Decimal.fromInt(amount) / Decimal.fromInt(100)).toString();
@@ -167,10 +167,15 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
   }
 
   void _onSaveButtonPressed() {
+    Category category = widget._getCategory();
+    if (null == category) {
+      Fluttertoast.showToast(msg: '请选择分类');
+      return;
+    }
     // 记录本次使用的备注
-    Runtime.addFrequentlyMark(_remark);
+    Runtime.putFrequentlyMark(category.name, _remark);
     if (null != widget._callback)
-      widget._callback((Decimal.parse(_valueStr) * Decimal.fromInt(100)).toInt(), _dateTime, _remark, _creator);
+      widget._callback((Decimal.parse(_valueStr) * Decimal.fromInt(100)).toInt(), _dateTime, _remark, _creator, category);
   }
 
   String _getValueShowString() {
@@ -178,31 +183,28 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
     return _value0Str + (operation == 1 ? '+' : '-') + _valueStr;
   }
 
+  /// 备注行
   List<Widget> get markDialogRow {
-    if (null == _markDialogRow) _markDialogRow = _getMarkDialogRow();
-    return _markDialogRow;
-  }
-
-  List<Widget> _getMarkDialogRow() {
     List<Widget> result = [
       TextField(controller: _remarkController, decoration: InputDecoration(hintText: '请输入备注'), autofocus: true),
       Container(margin: EdgeInsets.only(top: 10))
     ];
     // 常用备注
     int columnNumber = 4;
-    for (int i = 0; i < Runtime.frequentlyMarkList.length; i += columnNumber) {
+    List<String> frequentlyMarkList = Runtime.getFrequentlyMarkList(widget._getCategory().name) ?? [];
+    for (int i = 0; i < frequentlyMarkList.length; i += columnNumber) {
       List<Widget> children = [];
       for (int j = i; j < i + columnNumber; j++) {
-        if (j >= Runtime.frequentlyMarkList.length) continue;
+        if (j >= frequentlyMarkList.length) continue;
         children.add(Container(
             height: 40,
             width: 60,
             margin: EdgeInsets.all(2),
             child: FlatButton(
                 padding: EdgeInsets.all(0),
-                child: Text(Runtime.frequentlyMarkList[j], maxLines: 1, overflow: TextOverflow.ellipsis),
+                child: Text(frequentlyMarkList[j], maxLines: 1, overflow: TextOverflow.ellipsis),
                 onPressed: () {
-                  _onSetRemark(Runtime.frequentlyMarkList[j]);
+                  _onSetRemark(frequentlyMarkList[j]);
                   Navigator.pop(context);
                 }),
         ));
@@ -281,8 +283,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
                   context: context,
                   child: AlertDialog(
                     title: Text('备注'),
-                    content: Container(width: 300, height: 60.0 + 60 * (markDialogRow.length - 2),
-                        child: Column(children: markDialogRow)),
+                    content: Container(width: 300, height: 60.0 + 60 * (markDialogRow.length - 2), child: Column(children: markDialogRow)),
                     actions: <Widget>[
                       FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
                       FlatButton(child: Text('确认'), onPressed: () {
