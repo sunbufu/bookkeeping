@@ -15,12 +15,11 @@ class FrequentlyMarkService {
   /// 读取常用备注
   Future<void> fetchFrequentlyMarkMap(StorageAdapter storageAdapter) async {
     String content = await storageAdapter.read(Constants.FREQUENTLY_MARK_FILE_NAME);
-    if ('' != content) {
-      try {
-        _frequentlyMarkMap = Map<String, List<String>>.from(json.decode(content).map((k, v) => MapEntry(k, List<String>.from(v))));
-      } catch (e) {
-        print('解析常用备注数据失败 content=$content');
-      }
+    if ('' == content) return;
+    try {
+      _frequentlyMarkMap = Map<String, List<String>>.from(json.decode(content).map((k, v) => MapEntry(k, List<String>.from(v))));
+    } catch (e) {
+      print('解析常用备注数据失败 content=$content');
     }
   }
 
