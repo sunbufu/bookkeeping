@@ -21,3 +21,10 @@ class ModifiedRecordLog {
 
   Map<String, dynamic> toJson() => {"record": record.toJson(), "operation": operation};
 }
+
+class Operations {
+  /// 删除
+  static const DELETE = 0;
+  /// 新增
+  static const INSERT = 1;
+}

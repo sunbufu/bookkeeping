@@ -91,7 +91,7 @@ class HomePageState extends State<HomePage> {
   }
 
   /// 设置完成用户配置后，刷新存储数据
-  void _afterSetUser() async {
+  Future<void> _afterSetUser() async {
     _initWebDavStorageServer(Runtime.user.storageServer as WebDavStorageServerConfiguration);
     try {
       await Runtime.storageService.list();
@@ -125,8 +125,7 @@ class HomePageState extends State<HomePage> {
               if (result) Runtime.fileStorageAdapter.delete(Constants.USER_INFO_FILE_NAME);
             });
       }
-      User user = User.fromJson(json.decode(userContent));
-      Runtime.user = user;
+      Runtime.user = User.fromJson(json.decode(userContent));
       await _afterSetUser();
     } else {
       WebDavLoginDialog().show(context, null, (user) {
@@ -351,7 +350,7 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  ///  跳转到详情页
+  /// 跳转到详情页
   void gotoDetailPage({Record record, Function(ActionEntry<Record>) callback}) async {
     Runtime.detailPageShowing = true;
     // 增加
@@ -380,7 +379,7 @@ class HomePageState extends State<HomePage> {
         _refreshRecordListView();
       });
     });
-    if (Runtime.syncWhenModify || flush) {
+    if (Runtime.syncOnModify || flush) {
       LoadingDialog.runWithLoadingAsync(context, () async {
         await _flushRecordToStorage(Runtime.storageService);
         _refreshRecordListView();
@@ -462,11 +461,9 @@ class HomePageState extends State<HomePage> {
     // 变更应用到本地数据
     modifiedRecordLogList.forEach((log) {
       DailyRecord dailyRecord = _getDailyRecord(DateTimeUtil.getDayByTimestamp(log.record.time));
-      if (0 == log.operation) {
-        // 删除
+      if (Operations.DELETE == log.operation) {
         dailyRecord.records.remove(log.record.id);
-      } else if (1 == log.operation) {
-        // 新增
+      } else if (Operations.INSERT == log.operation) {
         dailyRecord.records[log.record.id] = log.record;
       }
     });
@@ -478,9 +475,10 @@ class HomePageState extends State<HomePage> {
         await Runtime.storageService.write(Constants.getMonthlyRecordFileNameByMonth(month), json.encode(Runtime.monthlyRecordMap[month]));
       } catch (e) {
         Fluttertoast.showToast(msg: '同步$month失败');
+        return;
       }
-      Runtime.sharedPreferencesStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
     }
+    Runtime.sharedPreferencesStorageAdapter.delete(Constants.MODIFIED_MONTHLY_RECORD_FILE_NAME);
   }
 
   @override
