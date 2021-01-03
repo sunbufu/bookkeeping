@@ -6,16 +6,16 @@ import 'package:bookkeeping/storage/file_storage_adapter.dart';
 import 'package:bookkeeping/storage/storage_adapter.dart';
 import 'package:webdav/webdav.dart';
 
-/// webdav 存储适配器
+/// WebDav 存储适配器
 class WebDavStorageAdapter implements StorageAdapter {
 
   /// 路径分隔符
   static const PATH_SEPARATOR = '/';
 
-  /// webdav 客户端
+  /// WebDav 客户端
   Client _client;
 
-  /// webdav 配置
+  /// WebDav 配置
   WebDavStorageServerConfiguration webDavStorageServer;
 
   /// 本地文件存储适配器

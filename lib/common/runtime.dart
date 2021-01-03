@@ -1,3 +1,4 @@
+import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:bookkeeping/model/user.dart';
 import 'package:bookkeeping/service/category_service.dart';
 import 'package:bookkeeping/service/frequently_mark_service.dart';
@@ -61,4 +62,11 @@ class Runtime {
 
   /// 月度记录
   static get monthlyRecordMap => recordService.monthlyRecordMap;
+
+  static Future<MonthlyRecord> getOrFetchByMonth(String month) async {
+    if (null == monthlyRecordMap[month]) {
+      await recordService.fetchRecordFromStorage(storageService, month);
+    }
+    return monthlyRecordMap[month];
+  }
 }

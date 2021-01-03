@@ -14,8 +14,16 @@ class DateTimeUtil {
     return formatDate(getDateTimeByTimestamp(timestamp), [yyyy, '-', mm, '-', dd]);
   }
 
+  static String formatLineDay(DateTime dateTime) {
+    return formatDate(dateTime, [yyyy, '-', mm, '-', dd]);
+  }
+
   static String getMonthByTimestamp(int timestamp) {
     return formatDate(getDateTimeByTimestamp(timestamp), [yyyy, '-', mm]);
+  }
+
+  static String formatLineMonth(DateTime dateTime) {
+    return formatDate(dateTime, [yyyy, '-', mm]);
   }
 
   static String getMonthDayByTimestamp(int timestamp) {
@@ -57,6 +65,10 @@ class DateTimeUtil {
     return getTimestampByString(day);
   }
 
+  static DateTime getDateTimeByDay(String day) {
+    return DateTime.tryParse(day);
+  }
+
   static DateTime getDateTimeByMonth(String month) {
     return DateTime.tryParse(month += '-01');
   }
@@ -92,5 +104,9 @@ class DateTimeUtil {
   static bool isCurrentMonth(int timestamp) {
     return getMonthByTimestamp(getTimestamp()) == getMonthByTimestamp(timestamp);
   }
-
+  
+  /// 获取删个月到时间
+  static DateTime getNextMonthTime(DateTime dateTime) {
+    return DateTime(dateTime.year, dateTime.month + 1, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second);
+  }
 }

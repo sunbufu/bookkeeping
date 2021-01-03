@@ -15,12 +15,11 @@ import 'package:flutter/material.dart';
 
 /// 统计页面
 class StatisticPage extends StatefulWidget {
-  String month;
-  MonthlyRecord monthlyRecord;
+  DateTime startMonth;
+  DateTime endMonth;
+  List<DailyRecord> dailyRecordList = [];
 
-  StatisticPage(this.month) {
-    monthlyRecord = Runtime.monthlyRecordMap[month];
-  }
+  StatisticPage(this.startMonth, this.endMonth);
 
   @override
   State<StatefulWidget> createState() => StatisticPageState();
@@ -58,23 +57,13 @@ class StatisticPageState extends State<StatisticPage> {
   /// 支出饼图数据
   List<PieChartItemData> expensesPieChartItemDataList = [];
 
-  /// 标题点击
-  void onTitlePress() {
-    MonthPickerDialog.showDialog(context, widget.month, (dateTime) {
-      LoadingDialog.show(context);
-      widget.month = DateTimeUtil.getMonthByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
-      Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, widget.month).then((_) {
-        widget.monthlyRecord = Runtime.monthlyRecordMap[widget.month];
-        _initData();
-        setState(() {});
-      }).whenComplete(() => LoadingDialog.dismiss());
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    _initData();
+    loadDailyRecordList().then((value) {
+      _initData();
+      setState(() {});
+    });
   }
 
   void _initData() {
@@ -89,8 +78,8 @@ class StatisticPageState extends State<StatisticPage> {
     expensesAmountSum = 0;
     expensesPieChartItemDataList = [];
 
-    if (null == widget.monthlyRecord || null == widget.monthlyRecord.records) return;
-    for (DailyRecord dailyRecord in widget.monthlyRecord.records.values) {
+    if (widget.dailyRecordList.isEmpty) return;
+    for (DailyRecord dailyRecord in widget.dailyRecordList) {
       if(null == dailyRecord.records) continue;
       dailyRecord.records.values.forEach((record) {
         if (1 == record.direction) {
@@ -138,9 +127,18 @@ class StatisticPageState extends State<StatisticPage> {
       backgroundColor: DarkModeUtil.isDarkMode(context) ? Colors.black : Color(0xFFEEEEEE),
       appBar: AppBar(
         title: FlatButton.icon(
-          onPressed: onTitlePress,
-          icon: Icon(Icons.expand_more, color: Colors.white,),
-          label: Text(widget.month, style: TextStyle(fontSize: 20, color: Colors.white),),
+          icon: Icon(Icons.expand_more, color: Colors.white),
+          label: Row(children: [
+            InkWell(
+                onTap: pickStartMonth,
+                child: Text(DateTimeUtil.formatLineMonth(widget.startMonth), style: TextStyle(fontSize: 20, color: Colors.white))
+            ),
+            Text("~", style: TextStyle(fontSize: 20, color: Colors.white)),
+            InkWell(
+                onTap: pickEndMonth,
+                child: Text(DateTimeUtil.formatLineMonth(widget.endMonth), style: TextStyle(fontSize: 20, color: Colors.white))
+            ),
+          ]),
         ),
         centerTitle: true,
       ),
@@ -148,14 +146,61 @@ class StatisticPageState extends State<StatisticPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // 月度汇总
-            MonthlyRecordItem(Runtime.monthlyRecordMap[widget.month], detailed: true),
+            // 柱状图汇总
+            BarChartItem(widget.dailyRecordList),
             // 分类汇总
             buildPieChart()
           ],
         ),
       )
     );
+  }
+
+  /// 加载数据
+  Future<void> loadDailyRecordList() async {
+    widget.dailyRecordList.clear();
+    DateTime thisMonth = widget.startMonth;
+    while (thisMonth.isBefore(widget.endMonth)) {
+      // 考虑加载速度，当前月的数据不需要重新拉取
+      if (!DateTimeUtil.isCurrentMonth(DateTimeUtil.getTimestampByDateTime(thisMonth))) {
+        await Runtime.recordService.fetchRecordFromStorage(Runtime.storageService, DateTimeUtil.formatLineMonth(thisMonth));
+      }
+      MonthlyRecord monthlyRecord = Runtime.monthlyRecordMap[DateTimeUtil.formatLineMonth(thisMonth)];
+      if (monthlyRecord != null) {
+        widget.dailyRecordList.addAll(monthlyRecord.records.values);
+      }
+      thisMonth = DateTimeUtil.getNextMonthTime(thisMonth);
+    }
+  }
+
+  /// 选择开始月份
+  void pickStartMonth() {
+    MonthPickerDialog.showDialog(context, DateTimeUtil.formatLineMonth(widget.startMonth), (dateTime) {
+      widget.startMonth = dateTime;
+      if (!widget.startMonth.isBefore(widget.endMonth)) {
+        return;
+      }
+      LoadingDialog.show(context);
+      loadDailyRecordList().then((value) {
+        _initData();
+        setState(() {});
+      }).whenComplete(() => LoadingDialog.dismiss());
+    });
+  }
+
+  /// 选择结束月份
+  void pickEndMonth() {
+    MonthPickerDialog.showDialog(context, DateTimeUtil.formatLineMonth(widget.endMonth), (dateTime) {
+      widget.endMonth = dateTime;
+      if (!widget.startMonth.isBefore(widget.endMonth)) {
+        return;
+      }
+      LoadingDialog.show(context);
+      loadDailyRecordList().then((value) {
+        _initData();
+        setState(() {});
+      }).whenComplete(() => LoadingDialog.dismiss());
+    });
   }
 
   /// 分类统计模块

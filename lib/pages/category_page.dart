@@ -117,18 +117,21 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   Future<bool> _onWillPop() async {
     if (!changed) return true;
     bool result = false;
-    await showDialog(context: context,
-        child: AlertDialog(title: Text('是否保存更改?'), actions: <Widget>[
-          FlatButton(child: Text('丢弃'), onPressed: () {
-            Navigator.pop(context);
-            result = true;
-          }),
-          FlatButton(child: Text('保存'), onPressed: () {
-            Navigator.pop(context);
-            _saveChange();
-            result = true;
-          })
-        ]));
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text('是否保存更改?'),
+          actions: <Widget>[
+            FlatButton(child: Text('丢弃'), onPressed: () {
+              Navigator.pop(context);
+              result = true;
+            }),
+            FlatButton(child: Text('保存'), onPressed: () {
+              Navigator.pop(context);
+              _saveChange();
+              result = true;
+            })],
+        ));
     return result;
   }
 
@@ -136,19 +139,15 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   void _showDeletedCategory(Category category) {
     showDialog(
         context: context,
-        child: AlertDialog(
+        builder: (BuildContext context) => AlertDialog(
           title: Text('确定删除分类 ${category.name} ?'),
           actions: <Widget>[
             FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
-            FlatButton(
-              child: Text('确定'),
-              onPressed: () {
-                _deleteCategory(category);
-                setState(() {});
-                Navigator.pop(context);
-              },
-            ),
-          ],
+            FlatButton(child: Text('确定'), onPressed: () {
+              _deleteCategory(category);
+              setState(() {});
+              Navigator.pop(context);
+            })],
         ));
   }
 
@@ -157,7 +156,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
     TextEditingController _categoryNameController = TextEditingController(text: category.name);
     showDialog(
         context: context,
-        child: AlertDialog(
+        builder: (BuildContext context) => AlertDialog(
           title: Text('修改分类'),
           content: TextField(
             decoration: InputDecoration(hintText: '名称'),
@@ -183,7 +182,7 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
     TextEditingController _categoryNameController = TextEditingController();
     showDialog(
         context: context,
-        child: AlertDialog(
+        builder: (BuildContext context) => AlertDialog(
           title: Text('新建分类'),
           content: TextField(
             decoration: InputDecoration(hintText: '名称'),

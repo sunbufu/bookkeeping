@@ -104,7 +104,4 @@ class Record {
       time.hashCode ^
       createdTime.hashCode ^
       createdUser.hashCode;
-
-
-
 }

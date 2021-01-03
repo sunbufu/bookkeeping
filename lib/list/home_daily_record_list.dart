@@ -1,15 +1,16 @@
 
-import 'package:bookkeeping/item/daily_record_item.dart';
+import 'package:bookkeeping/common/date_time_util.dart';
+import 'package:bookkeeping/item/home_daily_record_list_item.dart';
 import 'package:bookkeeping/item/monthly_record_item.dart';
 import 'package:bookkeeping/model/daily_record.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:bookkeeping/model/record.dart';
 import 'package:flutter/cupertino.dart';
 
-/// 日度记录列表视图
-class DailyRecordList extends StatefulWidget {
+/// 主页日度记录列表视图
+class HomeDailyRecordList extends StatefulWidget {
 
-  DailyRecordListState state;
+  HomeDailyRecordListState state;
 
   void setMonthRecord(MonthlyRecord monthlyRecord) => state.setMonthRecord(monthlyRecord);
   
@@ -20,12 +21,12 @@ class DailyRecordList extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    state = DailyRecordListState();
+    state = HomeDailyRecordListState();
     return state;
   }
 }
 
-class DailyRecordListState extends State<DailyRecordList> {
+class HomeDailyRecordListState extends State<HomeDailyRecordList> {
 
   List<DailyRecord> _list = [];
 
@@ -57,18 +58,45 @@ class DailyRecordListState extends State<DailyRecordList> {
 
   @override
   Widget build(BuildContext context) {
+    List<DailyRecord> sevenDailyRecordList = [];
+    List<String> sevenDayList = getSevenDayList();
+    sevenDayList.forEach((day) {
+      DailyRecord dailyRecord = _monthlyRecord != null ? _monthlyRecord.records[day] : null;
+      if (dailyRecord == null) {
+        dailyRecord = DailyRecord(time: DateTimeUtil.getTimestampByDay(day));
+      }
+      sevenDailyRecordList.add(dailyRecord);
+    });
+    
     return ListView.builder(
         controller: _controller,
         itemCount: _list.length + 1,
         itemBuilder: (BuildContext context, int index) {
           if (0 == index) {
-            return MonthlyRecordItem(_monthlyRecord);
+            return BarChartItem(sevenDailyRecordList);
           } else {
-            return DailyRecordItem(_list[index-1], (record) {
+            return HomeDailyRecordListItem(_list[index-1], (record) {
               if (null != onPressCallback) onPressCallback(record);
             }); 
           }
         }
     );
+  }
+
+  /// 寻找本月的七天（七号之前早前七天）
+  List<String> getSevenDayList() {
+    List<String> result = [];
+    DateTime now = DateTime.now();
+    int day = now.day;
+    for (int i = 0; i < (day >= 7 ? 7 : day); i++) {
+      DateTime dateTime = now.subtract(Duration(days: i));
+      result.add(DateTimeUtil.formatLineDay(dateTime));
+    }
+    for (int i = 1; i < (day >= 7 ? 0 : 7 - day + 1); i++) {
+      DateTime dateTime = now.add(Duration(days: i));
+      result.add(DateTimeUtil.formatLineDay(dateTime));
+    }
+    result.sort();
+    return result;
   }
 }

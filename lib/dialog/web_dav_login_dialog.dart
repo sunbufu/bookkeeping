@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// webdav 登录弹框
+/// WebDav 登录弹框
 class WebDavLoginDialog extends SimpleDialog {
   WebDavLoginDialog();
 
@@ -19,7 +19,7 @@ class WebDavLoginDialog extends SimpleDialog {
       return null;
     }
     if ('' == url) {
-      Fluttertoast.showToast(msg: 'webdav url 不能为空');
+      Fluttertoast.showToast(msg: 'WebDav url 不能为空');
       return null;
     }
     if ('' == username) {
@@ -63,7 +63,7 @@ class WebDavLoginDialog extends SimpleDialog {
               TextField(
                 controller: _url,
                 decoration: InputDecoration(
-                  hintText: "webdav url",
+                  hintText: "WebDav url",
                   suffixIcon: InkWell(
                     onTap: () => launch('https://sunbufu.github.io/2020/05/02/bookkeeping/'),
                     child: Icon(Icons.help),

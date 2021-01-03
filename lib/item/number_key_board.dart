@@ -281,7 +281,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
               onPressed: () {
                 showDialog(
                   context: context,
-                  child: AlertDialog(
+                  builder: (BuildContext context) => AlertDialog(
                     title: Text('备注'),
                     content: Container(width: 300, height: 60.0 + 60 * (markDialogRow.length - 2), child: Column(children: markDialogRow)),
                     actions: <Widget>[
@@ -308,7 +308,7 @@ class NumberKeyBoardState extends State<NumberKeyBoard> {
               onPressed: () {
                 showDialog(
                   context: context,
-                  child: AlertDialog(
+                  builder: (BuildContext context) => AlertDialog(
                     title: Text('创建人'),
                     content: TextField(controller: _creatorController, decoration: InputDecoration(hintText: '请输入创建人'), autofocus: true,),
                     actions: <Widget>[
