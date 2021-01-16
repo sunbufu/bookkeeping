@@ -22,9 +22,12 @@ class BarChartItem extends StatelessWidget {
   // 支出
   int expenses = 0;
 
-  BarChartItem(List<DailyRecord> dailyRecordList) {
+  BarChartItem(List<DailyRecord> dailyRecordList, {int balance:0, int receipts:0, int expenses:0}) {
     this._dailyRecordList = dailyRecordList;
-    if (null != this._dailyRecordList) {
+    this.balance = balance;
+    this.receipts = receipts;
+    this.expenses = expenses;
+    if (null != this._dailyRecordList && (0 != balance || 0 != receipts || 0 != expenses)) {
       _dailyRecordList.forEach((dr) {
         dr.records.forEach((id, r) {
           if (Directions.EXPENSE == r.direction) {
@@ -99,12 +102,9 @@ class BarChartItem extends StatelessWidget {
 
   /// 柱状图
   Widget _getBarChart() {
-    if (_dailyRecordList.length <= 7) {
-      return BarChartDailyItem(dailyRecordList: _dailyRecordList);
-    }
-    if (_dailyRecordList.length <= 31) {
-      return BarChartDailyThinItem(_dailyRecordList);
-    }
+    if (null == _dailyRecordList || _dailyRecordList.isEmpty) return Container();
+    if (_dailyRecordList.length <= 7) return BarChartDailyItem(dailyRecordList: _dailyRecordList);
+    if (_dailyRecordList.length <= 31) return BarChartDailyThinItem(_dailyRecordList);
     return BarChartMonthlyItem(_dailyRecordList);
   }
 }

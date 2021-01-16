@@ -3,6 +3,7 @@ import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/item/home_daily_record_list_item.dart';
 import 'package:bookkeeping/item/monthly_record_item.dart';
 import 'package:bookkeeping/model/daily_record.dart';
+import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:bookkeeping/model/record.dart';
 import 'package:flutter/cupertino.dart';
@@ -72,8 +73,21 @@ class HomeDailyRecordListState extends State<HomeDailyRecordList> {
         controller: _controller,
         itemCount: _list.length + 1,
         itemBuilder: (BuildContext context, int index) {
+          if (null == _monthlyRecord || null == _monthlyRecord.records || _monthlyRecord.records.isEmpty) return Container();
           if (0 == index) {
-            return BarChartItem(sevenDailyRecordList);
+            int balance = 0, receipts = 0, expenses = 0;
+            _monthlyRecord.records.values.forEach((dr) {
+              dr.records.values.forEach((r){
+                if (Directions.EXPENSE == r.direction) {
+                  balance -= r.amount;
+                  expenses += r.amount;
+                } else if (1 == r.direction) {
+                  balance += r.amount;
+                  receipts += r.amount;
+                }
+              });
+            });
+            return BarChartItem(sevenDailyRecordList, balance: balance, receipts: receipts, expenses: expenses);
           } else {
             return HomeDailyRecordListItem(_list[index-1], (record) {
               if (null != onPressCallback) onPressCallback(record);
