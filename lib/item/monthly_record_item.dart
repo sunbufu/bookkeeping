@@ -27,15 +27,15 @@ class BarChartItem extends StatelessWidget {
     this.balance = balance;
     this.receipts = receipts;
     this.expenses = expenses;
-    if (null != this._dailyRecordList && (0 != balance || 0 != receipts || 0 != expenses)) {
+    if (null != this._dailyRecordList && (0 == balance && 0 == receipts && 0 == expenses)) {
       _dailyRecordList.forEach((dr) {
         dr.records.forEach((id, r) {
           if (Directions.EXPENSE == r.direction) {
-            balance -= r.amount;
-            expenses += r.amount;
+            this.balance -= r.amount;
+            this.expenses += r.amount;
           } else if (1 == r.direction) {
-            balance += r.amount;
-            receipts += r.amount;
+            this.balance += r.amount;
+            this.receipts += r.amount;
           }
         });
       });
