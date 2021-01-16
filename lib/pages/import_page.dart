@@ -50,20 +50,21 @@ class ImportPageState extends State<ImportPage> {
       recordList.add(record);
     }
     // 弹出提示框
-    showDialog(context: context, child: AlertDialog(
-      title: Text('读取到 ${recordList.length} 条记录'),
-      content: Text('导入时间的长短与网络和数据量有关，请勿将应用置于后台!'),
-      actions: <Widget>[
-        FlatButton(child: Text('取消'), onPressed: () {
-          Navigator.pop(context);
-        }),
-        FlatButton(child: Text('导入'), onPressed: () {
-          setState(() => stepThreeMessage = '\n【导入成功】');
-          Navigator.pop(context);
-          Navigator.pop(context, recordList);
-        })
-      ],
-    ),);
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+            title: Text('读取到 ${recordList.length} 条记录'),
+            content: Text('导入时间的长短与网络和数据量有关，请勿将应用置于后台!'),
+            actions: <Widget>[
+              FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
+              FlatButton(
+                  child: Text('导出'),
+                  onPressed: () {
+                    setState(() => stepThreeMessage = '\n【导入成功】');
+                    Navigator.pop(context);
+                    Navigator.pop(context, recordList);
+                  })
+            ]));
   }
 
   Record _convert (List<String> recordFieldList) {
@@ -117,7 +118,7 @@ class ImportPageState extends State<ImportPage> {
               Container(margin: EdgeInsets.only(top: 20)),
               Text('3. 数据导入', style: TextStyle(fontSize: 20)),
               OutlineButton(child: Text('数据导入'), onPressed: () => _import()),
-              Text('上传表格到 webdav 服务器，点击"数据导入"导入数据。$stepThreeMessage'),
+              Text('上传表格到 WebDav 服务器，点击"数据导入"导入数据。$stepThreeMessage'),
               Container(margin: EdgeInsets.only(top: 20)),
             ],
           ),

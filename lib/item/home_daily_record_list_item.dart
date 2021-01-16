@@ -7,11 +7,11 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class DailyRecordItem extends StatelessWidget {
+class HomeDailyRecordListItem extends StatelessWidget {
   final DailyRecord _dailyRecord;
   final Function _onPressCallBack;
 
-  DailyRecordItem(this._dailyRecord, this._onPressCallBack);
+  HomeDailyRecordListItem(this._dailyRecord, this._onPressCallBack);
 
   @override
   Widget build(BuildContext context) {

@@ -1,7 +1,9 @@
 import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
-import 'package:bookkeeping/item/monthly_days_bar_chart_item.dart';
-import 'package:bookkeeping/item/seven_days_bar_chart_item.dart';
+import 'package:bookkeeping/item/bar_chart_daily_thin_item.dart';
+import 'package:bookkeeping/item/bar_chart_daily_item.dart';
+import 'package:bookkeeping/item/bar_chart_monthly_item.dart';
+import 'package:bookkeeping/model/daily_record.dart';
 import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/monthly_record.dart';
 import 'package:decimal/decimal.dart';
@@ -9,10 +11,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// 月度汇总
-class MonthlyRecordItem extends StatelessWidget {
-  MonthlyRecord _monthlyRecord;
+class BarChartItem extends StatelessWidget {
 
-  String month;
+  List<DailyRecord> _dailyRecordList;
+  
   // 结余
   int balance = 0;
   // 收入
@@ -20,15 +22,13 @@ class MonthlyRecordItem extends StatelessWidget {
   // 支出
   int expenses = 0;
 
-  // 详情模式（展示该月每日柱状图）
-  bool _detailed = false;
-
-  MonthlyRecordItem(MonthlyRecord _monthlyRecord, {detailed: false}) {
-    this._monthlyRecord = _monthlyRecord;
-    this._detailed = detailed;
-    if (null != this._monthlyRecord) {
-      month = null != _monthlyRecord ? DateTimeUtil.getMonthByTimestamp(_monthlyRecord.time) : '';
-      _monthlyRecord.records.forEach((m, dr) {
+  BarChartItem(List<DailyRecord> dailyRecordList, {int balance:0, int receipts:0, int expenses:0}) {
+    this._dailyRecordList = dailyRecordList;
+    this.balance = balance;
+    this.receipts = receipts;
+    this.expenses = expenses;
+    if (null != this._dailyRecordList && (0 != balance || 0 != receipts || 0 != expenses)) {
+      _dailyRecordList.forEach((dr) {
         dr.records.forEach((id, r) {
           if (Directions.EXPENSE == r.direction) {
             balance -= r.amount;
@@ -46,7 +46,7 @@ class MonthlyRecordItem extends StatelessWidget {
     return Column(
       children: <Widget>[
         Container(height: 10),
-        Text('月结余', style: TextStyle(fontSize: 12)),
+        Text('结余', style: TextStyle(fontSize: 12)),
         Text(
           (Decimal.fromInt(balance) / Decimal.fromInt(100)).toStringAsFixed(2),
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
@@ -58,7 +58,7 @@ class MonthlyRecordItem extends StatelessWidget {
   Widget _getReceipts() {
     return Column(
       children: <Widget>[
-        Text('月收入', style: TextStyle(fontSize: 12)),
+        Text('收入', style: TextStyle(fontSize: 12)),
         Text(
           (Decimal.fromInt(receipts) / Decimal.fromInt(100)).toStringAsFixed(2),
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
@@ -70,7 +70,7 @@ class MonthlyRecordItem extends StatelessWidget {
   Widget _getExpenses() {
     return Column(
       children: <Widget>[
-        Text('月支出', style: TextStyle(fontSize: 12)),
+        Text('支出', style: TextStyle(fontSize: 12)),
         Text(
           (Decimal.fromInt(expenses) / Decimal.fromInt(100)).toStringAsFixed(2),
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
@@ -81,7 +81,7 @@ class MonthlyRecordItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if(null == _monthlyRecord) return Container();
+    if(null == _dailyRecordList) return Container();
     return Container(
       margin: EdgeInsets.fromLTRB(10, 15, 10, 0),
       decoration: BoxDecoration(
@@ -102,12 +102,9 @@ class MonthlyRecordItem extends StatelessWidget {
 
   /// 柱状图
   Widget _getBarChart() {
-    if (_detailed) {
-      return MonthlyDaysBarChartItem(_monthlyRecord);
-    }
-    if (DateTimeUtil.isCurrentMonth(_monthlyRecord.time)) {
-      return SevenDaysBarChartItem(monthlyRecord: _monthlyRecord);
-    }
-    return Container();
+    if (null == _dailyRecordList || _dailyRecordList.isEmpty) return Container();
+    if (_dailyRecordList.length <= 7) return BarChartDailyItem(dailyRecordList: _dailyRecordList);
+    if (_dailyRecordList.length <= 31) return BarChartDailyThinItem(_dailyRecordList);
+    return BarChartMonthlyItem(_dailyRecordList);
   }
 }

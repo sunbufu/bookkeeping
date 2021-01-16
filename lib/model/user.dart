@@ -5,7 +5,7 @@ class User {
   // 用户名
   String username;
 
-  // 存储服务类型（1：webdav）
+  // 存储服务类型（1：WebDav）
   int storageServerType;
 
   int syncOnModify;

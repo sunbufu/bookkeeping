@@ -10,7 +10,7 @@ import 'package:bookkeeping/dialog/loading_dialog.dart';
 import 'package:bookkeeping/dialog/month_picker_dialog.dart';
 import 'package:bookkeeping/dialog/web_dav_login_dialog.dart';
 import 'package:bookkeeping/item/menu_item.dart';
-import 'package:bookkeeping/list/daily_record_list.dart';
+import 'package:bookkeeping/list/home_daily_record_list.dart';
 import 'package:bookkeeping/model/daily_record.dart';
 import 'package:bookkeeping/model/directions.dart';
 import 'package:bookkeeping/model/modified_record_log.dart';
@@ -46,7 +46,7 @@ class HomePageState extends State<HomePage> {
   String _month = '2020-05';
 
   /// 列表展示组件
-  DailyRecordList _dailyRecordListView = DailyRecordList();
+  HomeDailyRecordList _dailyRecordListView = HomeDailyRecordList();
 
   /// 是否展示浮动按钮
   bool showFloatingButton = true;
@@ -136,7 +136,7 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  /// 初始化 webdav
+  /// 初始化 WebDav
   void _initWebDavStorageServer(WebDavStorageServerConfiguration configuration) {
     LoadingDialog.runWithLoading(context, (){
       Runtime.storageService.init(
@@ -160,7 +160,7 @@ class HomePageState extends State<HomePage> {
             });
             Fluttertoast.showToast(msg: '同步完成');
           } catch (e) {
-            Fluttertoast.showToast(msg: 'webdav连接失败');
+            Fluttertoast.showToast(msg: 'WebDav连接失败');
           }
         });
       }),
@@ -176,7 +176,7 @@ class HomePageState extends State<HomePage> {
       }),
       MenuItem('数据导入', () {
         if (!Runtime.storageService.isReady) {
-          Fluttertoast.showToast(msg: 'webdav 连接未成功，请配置完成后再试');
+          Fluttertoast.showToast(msg: 'WebDav 连接未成功，请配置完成后再试');
         } else {
           Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProgressHUD(child: ImportPage()))).then((value) {
             if (null != value && value is List<Record>) _importRecordList(value);
@@ -185,25 +185,23 @@ class HomePageState extends State<HomePage> {
       }),
       MenuItem('数据导出', () {
         if (!Runtime.storageService.isReady) {
-          Fluttertoast.showToast(msg: 'webdav 连接未成功，请配置完成后再试');
+          Fluttertoast.showToast(msg: 'webDav 连接未成功，请配置完成后再试');
         } else {
           String exportFileName = Constants.getExportFileName(DateTimeUtil.getTimestamp());
           showDialog(
               context: context,
-              child: AlertDialog(
+              builder: (BuildContext context) => AlertDialog(
                 title: Text('数据导出'),
-                  content: Text('导出时间的长短与网络和数据量有关，请勿将应用置于后台! 数据将被导出到 webdav 的【$exportFileName】上。'),
-                  actions: <Widget>[
+                content: Text('导出时间的长短与网络和数据量有关，请勿将应用置于后台! 数据将被导出到 WebDav 的【$exportFileName】上。'), actions: <Widget>[
                   FlatButton(child: Text('取消'), onPressed: () => Navigator.pop(context)),
                   FlatButton(
                       child: Text('导出'),
                       onPressed: () {
-                      Navigator.pop(context);
-                      LoadingDialog.runWithLoadingAsync(context, () async {
-                        await _exportRecordList(exportFileName);
-                      });
-                    })
-              ]));
+                        Navigator.pop(context);
+                        LoadingDialog.runWithLoadingAsync(context, () async => _exportRecordList(exportFileName));
+                      })
+                ]),
+          );
         }
       }),
       MenuItem('使用教程', () {
@@ -494,7 +492,8 @@ class HomePageState extends State<HomePage> {
         centerTitle: true,
         actions: <Widget>[
           IconButton(icon: Icon(Icons.equalizer), onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ProgressHUD(child: StatisticPage(_month))));
+            DateTime month = DateTimeUtil.getDateTimeByMonth(_month);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ProgressHUD(child: StatisticPage(month, DateTimeUtil.getNextMonthTime(month)))));
           }),
           PopupMenuButton<MenuItem>(
             onSelected: (menuItem) => menuItem.onSelected(),

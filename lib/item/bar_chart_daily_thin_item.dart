@@ -2,18 +2,17 @@ import 'package:bookkeeping/common/dark_mode_util.dart';
 import 'package:bookkeeping/common/date_time_util.dart';
 import 'package:bookkeeping/model/daily_record.dart';
 import 'package:bookkeeping/model/directions.dart';
-import 'package:bookkeeping/model/monthly_record.dart';
+import 'package:date_format/date_format.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// 七日柱状图
-class SevenDaysBarChartItem extends StatelessWidget {
-  MonthlyRecord _monthlyRecord;
+/// 细每日柱状图（可展示30天数据）
+class BarChartDailyThinItem extends StatelessWidget {
 
-  List<DateTime> sevenDayList = [];
+  List<DailyRecord> _dailyRecordList = [];
 
-  List<DailyBalance> sevenDailyBalanceList = [];
+  List<DailyBalance> dailyBalanceList = [];
 
   /// 最大值
   int max = 20;
@@ -21,65 +20,44 @@ class SevenDaysBarChartItem extends StatelessWidget {
   /// 系数
   int factor = 20;
 
-  SevenDaysBarChartItem({MonthlyRecord monthlyRecord}) {
-    this._monthlyRecord = monthlyRecord;
+  BarChartDailyThinItem(List<DailyRecord> dailyRecordList) {
+    this._dailyRecordList = dailyRecordList;
     _init();
   }
 
   void _init() {
-    _initSevenDay();
-    _initSevenDailyBalanceList();
+    _initMonthlyDailyBalanceList();
     factor = max ~/ 20;
   }
 
-  /// 寻找本月的七天（七号之前早前七天）
-  void _initSevenDay() {
-    DateTime now = DateTime.now();
-    int day = now.day;
-    for (int i = 0; i < (day >= 7 ? 7 : day); i++) {
-      DateTime dateTime = now.subtract(Duration(days: i));
-      sevenDayList.add(dateTime);
-    }
-    for (int i = 1; i < (day >= 7 ? 0 : 7 - day + 1); i++) {
-      DateTime dateTime = now.add(Duration(days: i));
-      sevenDayList.add(dateTime);
-    }
-    sevenDayList.sort();
-  }
-
-  /// 汇总七日数据
-  void _initSevenDailyBalanceList() {
-    for (DateTime dateTime in sevenDayList) {
-      String day = DateTimeUtil.getDayByTimestamp(DateTimeUtil.getTimestampByDateTime(dateTime));
-      DailyRecord dailyRecord = _monthlyRecord.records[day];
-      if (null == dailyRecord) {
-        sevenDailyBalanceList.add(DailyBalance(day: '${dateTime.day}'));
-      } else {
-        int expenses = 1;
-        int receipts = 1;
-        dailyRecord.records.values.forEach((r) {
-          if (Directions.EXPENSE == r.direction) {
-            expenses += r.amount;
-          } else if (1 == r.direction) {
-            receipts += r.amount;
-          }
-        });
-        sevenDailyBalanceList.add(DailyBalance(day: '${dateTime.day}', expenses: expenses, receipts: receipts));
-        // 记录最大值
-        max = expenses > max ? expenses : max;
-        max = receipts > max ? receipts : max;
-      }
+  /// 汇总每日数据
+  void _initMonthlyDailyBalanceList() {
+    for (DailyRecord dailyRecord in _dailyRecordList) {
+      String day = DateTimeUtil.getDayByTimestamp(dailyRecord.time);
+      int expenses = 1;
+      int receipts = 1;
+      dailyRecord.records.values.forEach((r) {
+        if (Directions.EXPENSE == r.direction) {
+          expenses += r.amount;
+        } else if (1 == r.direction) {
+          receipts += r.amount;
+        }
+      });
+      dailyBalanceList.add(DailyBalance(day: day, expenses: expenses, receipts: receipts));
+      // 记录最大值
+      max = expenses > max ? expenses : max;
+      max = receipts > max ? receipts : max;
     }
   }
 
   /// 获取柱状图组
   List<BarChartGroupData> _getGroupData() {
     List<BarChartGroupData> result = [];
-    for (int i = 0; i < sevenDailyBalanceList.length; i++) {
-      DailyBalance dailyBalance = sevenDailyBalanceList[i];
+    for (int i = 0; i < dailyBalanceList.length; i++) {
+      DailyBalance dailyBalance = dailyBalanceList[i];
       result.add(BarChartGroupData(x: i, barRods: [
-        BarChartRodData(y: dailyBalance.expenses / factor, color: Colors.deepOrange),
-        BarChartRodData(y: dailyBalance.receipts / factor, color: Colors.blue),
+        BarChartRodData(y: dailyBalance.expenses / factor, color: Colors.deepOrange, width: 3),
+        BarChartRodData(y: dailyBalance.receipts / factor, color: Colors.blue, width: 3),
       ]));
     }
     return result;
@@ -91,6 +69,7 @@ class SevenDaysBarChartItem extends StatelessWidget {
       aspectRatio: 1.9,
       child: Card(
         color: DarkModeUtil.isDarkMode(context) ? Color(0xFF222222) : Colors.white,
+        margin: EdgeInsets.only(left: 10, right: 10),
         elevation: 0,
         child: BarChart(
           BarChartData(
@@ -117,7 +96,13 @@ class SevenDaysBarChartItem extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 14),
                 margin: 5,
-                getTitles: (double value) => sevenDailyBalanceList[value.toInt()].day,
+                getTitles: (double value) {
+                  int index = value.toInt();
+                  if (dailyBalanceList.length <= index) return '';
+                  DateTime dateTime = DateTimeUtil.getDateTimeByDay(dailyBalanceList[index].day);
+                  String day = formatDate(dateTime, [dd]);
+                  return (int.parse(day) - 1) % 4 == 0 ? day : '';
+                },
               ),
               leftTitles: SideTitles(showTitles: false),
             ),
